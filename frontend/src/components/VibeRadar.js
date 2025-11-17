@@ -51,7 +51,7 @@ export default function VibeRadar() {
       setVibes(response.data.vibes);
       toast.success(`${response.data.count} yakın vibe bulundu`);
     } catch (error) {
-      toast.error('Vibe'lar yüklenemedi');
+      toast.error('Vibelar yüklenemedi');
     } finally {
       setLoading(false);
     }
