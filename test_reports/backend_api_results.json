@@ -1,8 +1,8 @@
 {
-  "timestamp": "2025-11-17T16:00:35.151965",
-  "total_tests": 3,
-  "passed_tests": 1,
-  "success_rate": 33.33333333333333,
+  "timestamp": "2025-11-17T16:01:00.230381",
+  "total_tests": 10,
+  "passed_tests": 10,
+  "success_rate": 100.0,
   "results": [
     {
       "test": "Root Endpoint",
@@ -11,13 +11,48 @@
     },
     {
       "test": "User Registration",
-      "success": false,
-      "details": "Status 422: {'detail': [{'type': 'value_error', 'loc': ['body', 'email'], 'msg': 'value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.', 'input': 'test_160035@cogitosync.test', 'ctx': {'reason': 'The part after the @-sign is a special-use or reserved name that cannot be used with email.'}}]}"
+      "success": true,
+      "details": ""
     },
     {
-      "test": "User Login",
-      "success": false,
-      "details": "Status 422: {'detail': [{'type': 'value_error', 'loc': ['body', 'email'], 'msg': 'value is not a valid email address: The part after the @-sign is a special-use or reserved name that cannot be used with email.', 'input': 'test@cogitosync.test', 'ctx': {'reason': 'The part after the @-sign is a special-use or reserved name that cannot be used with email.'}}]}"
+      "test": "CSS Creation",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "CSS History",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get CSS by ID",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Room Creation",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Join Room",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Collective CSS",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Room Members",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "CSS Reflection",
+      "success": true,
+      "details": ""
     }
   ]
 }
