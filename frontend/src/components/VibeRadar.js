@@ -73,7 +73,7 @@ export default function VibeRadar() {
               disabled={loading}
               data-testid="enable-radar-button"
             >
-              {loading ? 'Radar Açılıyor...' : 'Radar'ı Aç'}
+              {loading ? 'Radar Açılıyor...' : 'Radarı Aç'}
             </Button>
             <p className="text-xs text-gray-500 mt-2">
               100m çevredeki anonim CSS sinyalleri
