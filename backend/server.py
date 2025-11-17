@@ -413,13 +413,12 @@ async def get_collective_css(room_id: str):
             member_count=0
         )
     
-    # Get all CSS snapshots
+    # Get all CSS snapshots (optimized bulk query)
     css_ids = [m['css_id'] for m in members]
-    css_list = []
-    for css_id in css_ids:
-        css = await db.css_snapshots.find_one({"id": css_id}, {"_id": 0})
-        if css:
-            css_list.append(css)
+    css_list = await db.css_snapshots.find(
+        {"id": {"$in": css_ids}}, 
+        {"_id": 0}
+    ).to_list(100)
     
     collective = calculate_collective_css(css_list)
     collective['member_count'] = len(members)
