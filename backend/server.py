@@ -415,7 +415,7 @@ def calculate_empathy_score(css1_list: List[dict], css2_list: List[dict]) -> flo
 
 # =============== ROUTES ===============
 
-@api_router.get(\"/\")
+@api_router.get("/")
 async def root():
     return {\"message\": \"CogitoSync AI - Production Platform v2.0\"}
 
