@@ -470,6 +470,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+@app.on_event("startup")
+async def create_indexes():
+    """Create database indexes for optimal query performance"""
+    try:
+        await db.users.create_index("id", unique=True)
+        await db.users.create_index("email", unique=True)
+        await db.css_snapshots.create_index("id", unique=True)
+        await db.css_snapshots.create_index([("user_id", 1), ("timestamp", -1)])
+        await db.rooms.create_index("room_code", unique=True)
+        await db.room_members.create_index("room_id")
+        logger.info("Database indexes created successfully")
+    except Exception as e:
+        logger.warning(f"Index creation warning: {e}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
