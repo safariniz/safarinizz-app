@@ -421,11 +421,11 @@ async def root():
 
 # --- AUTH ---
 
-@api_router.post(\"/auth/register\", response_model=TokenResponse)
+@api_router.post("/auth/register", response_model=TokenResponse)
 async def register(user_data: UserRegister):
-    existing = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})
+    existing = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if existing:
-        raise HTTPException(status_code=400, detail=\"Email already registered\")
+        raise HTTPException(status_code=400, detail="Email already registered")
     
     user = User(
         email=user_data.email,
@@ -442,7 +442,7 @@ async def register(user_data: UserRegister):
     profile_doc['created_at'] = profile_doc['created_at'].isoformat()
     await db.user_profiles.insert_one(profile_doc)
     
-    token = create_access_token({\"user_id\": user.id, \"email\": user.email})
+    token = create_access_token({"user_id": user.id, "email": user.email})
     
     return TokenResponse(
         access_token=token,
@@ -451,16 +451,16 @@ async def register(user_data: UserRegister):
         is_premium=user.is_premium
     )
 
-@api_router.post(\"/auth/login\", response_model=TokenResponse)
+@api_router.post("/auth/login", response_model=TokenResponse)
 async def login(user_data: UserLogin):
-    user = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})
+    user = await db.users.find_one({"email": user_data.email}, {"_id": 0})
     if not user:
-        raise HTTPException(status_code=401, detail=\"Invalid credentials\")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
     if not verify_password(user_data.password, user['password_hash']):
-        raise HTTPException(status_code=401, detail=\"Invalid credentials\")
+        raise HTTPException(status_code=401, detail="Invalid credentials")
     
-    token = create_access_token({\"user_id\": user['id'], \"email\": user['email']})
+    token = create_access_token({"user_id": user['id'], "email": user['email']})
     
     return TokenResponse(
         access_token=token,
@@ -471,7 +471,7 @@ async def login(user_data: UserLogin):
 
 # --- CSS ---
 
-@api_router.post(\"/css/create\", response_model=CSS)
+@api_router.post("/css/create", response_model=CSS)
 async def create_css(css_input: CSSCreate, current_user: dict = Depends(get_current_user)):
     css_data = await generate_css_with_ai(css_input.emotion_input)
     
@@ -501,18 +501,18 @@ async def create_css(css_input: CSSCreate, current_user: dict = Depends(get_curr
     
     # Broadcast to WebSocket (live mode)
     await manager.broadcast({
-        \"type\": \"new_css\",
-        \"data\": doc
-    }, \"global\")
+        "type": "new_css",
+        "data": doc
+    }, "global")
     
     return css
 
-@api_router.get(\"/css/my-history\", response_model=List[CSS])
+@api_router.get("/css/my-history", response_model=List[CSS])
 async def get_my_css_history(current_user: dict = Depends(get_current_user)):
     css_list = await db.css_snapshots.find(
-        {\"user_id\": current_user['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(100)
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(100)
     
     for css in css_list:
         if isinstance(css['timestamp'], str):
@@ -520,11 +520,11 @@ async def get_my_css_history(current_user: dict = Depends(get_current_user)):
     
     return css_list
 
-@api_router.get(\"/css/{css_id}\", response_model=CSS)
+@api_router.get("/css/{css_id}", response_model=CSS)
 async def get_css_by_id(css_id: str):
-    css = await db.css_snapshots.find_one({\"id\": css_id}, {\"_id\": 0})
+    css = await db.css_snapshots.find_one({"id": css_id}, {"_id": 0})
     if not css:
-        raise HTTPException(status_code=404, detail=\"CSS not found\")
+        raise HTTPException(status_code=404, detail="CSS not found")
     
     if isinstance(css['timestamp'], str):
         css['timestamp'] = datetime.fromisoformat(css['timestamp'])
@@ -533,119 +533,119 @@ async def get_css_by_id(css_id: str):
 
 # --- VIBE RADAR ---
 
-@api_router.post(\"/vibe-radar/nearby\")
+@api_router.post("/vibe-radar/nearby")
 async def get_nearby_vibes(location: LocationInput, current_user: dict = Depends(get_current_user)):
-    \"\"\"Get nearby CSS signals (100m radius for privacy)\"\"\"
+    """Get nearby CSS signals (100m radius for privacy)"""
     loc_hash = hash_location(location.lat, location.lon)
     
     # Find CSS with similar location hash
     recent_css = await db.css_snapshots.find(
         {
-            \"location_hash\": loc_hash,
-            \"timestamp\": {\"$gte\": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}
+            "location_hash": loc_hash,
+            "timestamp": {"$gte": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}
         },
-        {\"_id\": 0, \"user_id\": 0}  # Privacy: hide user IDs
+        {"_id": 0, "user_id": 0}  # Privacy: hide user IDs
     ).to_list(50)
     
-    return {\"vibes\": recent_css, \"count\": len(recent_css)}
+    return {"vibes": recent_css, "count": len(recent_css)}
 
 # --- AVATAR ---
 
-@api_router.post(\"/avatar/generate\")
+@api_router.post("/avatar/generate")
 async def generate_avatar(current_user: dict = Depends(get_current_user)):
-    \"\"\"Generate AI avatar based on CSS patterns\"\"\"
-    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})
+    """Generate AI avatar based on CSS patterns"""
+    profile = await db.user_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
     
     if not profile:
-        raise HTTPException(status_code=404, detail=\"Profile not found\")
+        raise HTTPException(status_code=404, detail="Profile not found")
     
     # Check premium for unlimited regeneration
     if not current_user.get('is_premium', False):
         if profile.get('avatar_generated_at'):
             last_gen = datetime.fromisoformat(profile['avatar_generated_at'])
             if (datetime.now(timezone.utc) - last_gen).days < 30:
-                raise HTTPException(status_code=403, detail=\"Avatar can be regenerated every 30 days (Premium: unlimited)\")
+                raise HTTPException(status_code=403, detail="Avatar can be regenerated every 30 days (Premium: unlimited)")
     
     css_history = await db.css_snapshots.find(
-        {\"user_id\": current_user['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(20)
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(20)
     
     if len(css_history) < 5:
-        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots to generate avatar\")
+        raise HTTPException(status_code=400, detail="Need at least 5 CSS snapshots to generate avatar")
     
     avatar_url = await generate_avatar_with_ai(css_history)
     
     await db.user_profiles.update_one(
-        {\"user_id\": current_user['id']},
-        {\"$set\": {
-            \"avatar_url\": avatar_url,
-            \"avatar_generated_at\": datetime.now(timezone.utc).isoformat()
+        {"user_id": current_user['id']},
+        {"$set": {
+            "avatar_url": avatar_url,
+            "avatar_generated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
     
-    return {\"avatar_url\": avatar_url}
+    return {"avatar_url": avatar_url}
 
-@api_router.get(\"/avatar/my\")
+@api_router.get("/avatar/my")
 async def get_my_avatar(current_user: dict = Depends(get_current_user)):
-    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})
-    return {\"avatar_url\": profile.get('avatar_url') if profile else None}
+    profile = await db.user_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    return {"avatar_url": profile.get('avatar_url') if profile else None}
 
 # --- MOOD JOURNAL ---
 
-@api_router.get(\"/mood-journal/timeline\")
-async def get_mood_timeline(period: str = \"daily\", current_user: dict = Depends(get_current_user)):
-    \"\"\"Get mood journal timeline\"\"\"
-    if period == \"daily\":
+@api_router.get("/mood-journal/timeline")
+async def get_mood_timeline(period: str = "daily", current_user: dict = Depends(get_current_user)):
+    """Get mood journal timeline"""
+    if period == "daily":
         start_time = datetime.now(timezone.utc) - timedelta(days=1)
-    elif period == \"weekly\":
+    elif period == "weekly":
         start_time = datetime.now(timezone.utc) - timedelta(days=7)
     else:  # monthly
         start_time = datetime.now(timezone.utc) - timedelta(days=30)
     
     entries = await db.mood_journal.find(
         {
-            \"user_id\": current_user['id'],
-            \"timestamp\": {\"$gte\": start_time.isoformat()}
+            "user_id": current_user['id'],
+            "timestamp": {"$gte": start_time.isoformat()}
         },
-        {\"_id\": 0}
+        {"_id": 0}
     ).to_list(1000)
     
     # Get CSS data for each entry
     css_ids = [e['css_id'] for e in entries]
     css_data = await db.css_snapshots.find(
-        {\"id\": {\"$in\": css_ids}},
-        {\"_id\": 0}
+        {"id": {"$in": css_ids}},
+        {"_id": 0}
     ).to_list(1000)
     
-    return {\"entries\": entries, \"css_data\": css_data, \"period\": period}
+    return {"entries": entries, "css_data": css_data, "period": period}
 
 # --- AI COACH ---
 
-@api_router.get(\"/ai-coach/insights\")
+@api_router.get("/ai-coach/insights")
 async def get_ai_insights(current_user: dict = Depends(get_current_user)):
-    \"\"\"Get AI coach insights\"\"\"
+    """Get AI coach insights"""
     if not current_user.get('is_premium', False):
         # Free users: limited insights
         recent_insight = await db.ai_insights.find_one(
-            {\"user_id\": current_user['id']},
-            {\"_id\": 0},
-            sort=[(\"created_at\", -1)]
+            {"user_id": current_user['id']},
+            {"_id": 0},
+            sort=[("created_at", -1)]
         )
         if recent_insight and isinstance(recent_insight['created_at'], str):
             recent_insight['created_at'] = datetime.fromisoformat(recent_insight['created_at'])
-        return {\"insight\": recent_insight, \"premium_required\": True}
+        return {"insight": recent_insight, "premium_required": True}
     
     css_history = await db.css_snapshots.find(
-        {\"user_id\": current_user['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(50)
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(50)
     
     insight_content = await generate_ai_insights(css_history)
     
     insight = AIInsight(
         user_id=current_user['id'],
-        insight_type=\"daily\",
+        insight_type="daily",
         content=insight_content
     )
     
@@ -653,20 +653,20 @@ async def get_ai_insights(current_user: dict = Depends(get_current_user)):
     doc['created_at'] = doc['created_at'].isoformat()
     await db.ai_insights.insert_one(doc)
     
-    return {\"insight\": doc, \"premium_required\": False}
+    return {"insight": doc, "premium_required": False}
 
 # --- AI FORECAST ---
 
-@api_router.get(\"/ai-forecast/predict\")
+@api_router.get("/ai-forecast/predict")
 async def get_mood_forecast(current_user: dict = Depends(get_current_user)):
-    \"\"\"Get 24h mood forecast\"\"\"
+    """Get 24h mood forecast"""
     if not current_user.get('is_premium', False):
-        return {\"forecast\": None, \"premium_required\": True}
+        return {"forecast": None, "premium_required": True}
     
     css_history = await db.css_snapshots.find(
-        {\"user_id\": current_user['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(50)
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(50)
     
     forecast_data = await generate_mood_forecast(css_history)
     
@@ -681,11 +681,11 @@ async def get_mood_forecast(current_user: dict = Depends(get_current_user)):
     doc['valid_until'] = doc['valid_until'].isoformat()
     await db.ai_forecasts.insert_one(doc)
     
-    return {\"forecast\": forecast_data, \"premium_required\": False}
+    return {"forecast": forecast_data, "premium_required": False}
 
 # --- ROOMS ---
 
-@api_router.post(\"/room/create\", response_model=Room)
+@api_router.post("/room/create", response_model=Room)
 async def create_room(current_user: dict = Depends(get_current_user)):
     room_code = str(uuid.uuid4())[:8].upper()
     
@@ -700,15 +700,15 @@ async def create_room(current_user: dict = Depends(get_current_user)):
     
     return room
 
-@api_router.post(\"/room/join\")
+@api_router.post("/room/join")
 async def join_room(join_data: RoomJoin, current_user: dict = Depends(get_current_user)):
-    room = await db.rooms.find_one({\"room_code\": join_data.room_code, \"is_active\": True}, {\"_id\": 0})
+    room = await db.rooms.find_one({"room_code": join_data.room_code, "is_active": True}, {"_id": 0})
     if not room:
-        raise HTTPException(status_code=404, detail=\"Room not found\")
+        raise HTTPException(status_code=404, detail="Room not found")
     
-    css = await db.css_snapshots.find_one({\"id\": join_data.css_id}, {\"_id\": 0})
+    css = await db.css_snapshots.find_one({"id": join_data.css_id}, {"_id": 0})
     if not css:
-        raise HTTPException(status_code=404, detail=\"CSS not found\")
+        raise HTTPException(status_code=404, detail="CSS not found")
     
     member = RoomMember(
         room_id=room['id'],
@@ -722,30 +722,30 @@ async def join_room(join_data: RoomJoin, current_user: dict = Depends(get_curren
     
     # Broadcast to room
     await manager.broadcast({
-        \"type\": \"member_joined\",
-        \"room_id\": room['id']
+        "type": "member_joined",
+        "room_id": room['id']
     }, room['id'])
     
-    return {\"message\": \"Joined room\", \"room_id\": room['id']}
+    return {"message": "Joined room", "room_id": room['id']}
 
-@api_router.get(\"/room/{room_id}/collective-css\", response_model=CollectiveCSS)
+@api_router.get("/room/{room_id}/collective-css", response_model=CollectiveCSS)
 async def get_collective_css(room_id: str):
-    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)
+    members = await db.room_members.find({"room_id": room_id}, {"_id": 0}).to_list(100)
     
     if not members:
         return CollectiveCSS(
-            color=\"#E0E0E0\",
+            color="#E0E0E0",
             light_frequency=0.5,
-            sound_texture=\"smooth\",
-            emotion_label=\"Boş Oda\",
-            description=\"Henüz kimse katılmadı.\",
+            sound_texture="smooth",
+            emotion_label="Boş Oda",
+            description="Henüz kimse katılmadı.",
             member_count=0
         )
     
     css_ids = [m['css_id'] for m in members]
     css_list = await db.css_snapshots.find(
-        {\"id\": {\"$in\": css_ids}}, 
-        {\"_id\": 0}
+        {"id": {"$in": css_ids}}, 
+        {"_id": 0}
     ).to_list(100)
     
     collective = calculate_collective_css(css_list)
@@ -753,48 +753,48 @@ async def get_collective_css(room_id: str):
     
     return collective
 
-@api_router.get(\"/room/{room_id}/members\")
+@api_router.get("/room/{room_id}/members")
 async def get_room_members(room_id: str):
-    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)
-    return {\"members\": members, \"count\": len(members)}
+    members = await db.room_members.find({"room_id": room_id}, {"_id": 0}).to_list(100)
+    return {"members": members, "count": len(members)}
 
-@api_router.get(\"/room/{room_id}/dynamics\")
+@api_router.get("/room/{room_id}/dynamics")
 async def get_room_dynamics_endpoint(room_id: str, current_user: dict = Depends(get_current_user)):
-    \"\"\"Get AI-powered room dynamics\"\"\"
+    """Get AI-powered room dynamics"""
     if not current_user.get('is_premium', False):
-        return {\"dynamics\": None, \"premium_required\": True}
+        return {"dynamics": None, "premium_required": True}
     
     dynamics = await analyze_room_dynamics(room_id)
-    return {\"dynamics\": dynamics, \"premium_required\": False}
+    return {"dynamics": dynamics, "premium_required": False}
 
 # --- EMPATHY MATCH ---
 
-@api_router.get(\"/empathy/find-match\")
+@api_router.get("/empathy/find-match")
 async def find_empathy_match(current_user: dict = Depends(get_current_user)):
-    \"\"\"Find anonymous empathy match\"\"\"
+    """Find anonymous empathy match"""
     my_css = await db.css_snapshots.find(
-        {\"user_id\": current_user['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(20)
+        {"user_id": current_user['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(20)
     
     if len(my_css) < 5:
-        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots for matching\")
+        raise HTTPException(status_code=400, detail="Need at least 5 CSS snapshots for matching")
     
     # Find potential matches (simplified)
     other_users = await db.users.find(
-        {\"id\": {\"$ne\": current_user['id']}},
-        {\"_id\": 0, \"id\": 1}
+        {"id": {"$ne": current_user['id']}},
+        {"_id": 0, "id": 1}
     ).limit(10).to_list(10)
     
     if not other_users:
-        return {\"match\": None, \"message\": \"No matches available yet\"}
+        return {"match": None, "message": "No matches available yet"}
     
     # Calculate compatibility
     best_match = random.choice(other_users)
     other_css = await db.css_snapshots.find(
-        {\"user_id\": best_match['id']},
-        {\"_id\": 0}
-    ).sort(\"timestamp\", -1).to_list(20)
+        {"user_id": best_match['id']},
+        {"_id": 0}
+    ).sort("timestamp", -1).to_list(20)
     
     score = calculate_empathy_score(my_css, other_css)
     
@@ -809,20 +809,20 @@ async def find_empathy_match(current_user: dict = Depends(get_current_user)):
     await db.empathy_matches.insert_one(doc)
     
     return {
-        \"match\": {
-            \"compatibility_score\": score,
-            \"matched_at\": doc['created_at']
+        "match": {
+            "compatibility_score": score,
+            "matched_at": doc['created_at']
         },
-        \"message\": \"Vibe matched!\"
+        "message": "Vibe matched!"
     }
 
 # --- CSS REACTIONS ---
 
-@api_router.post(\"/css/{css_id}/react\")
+@api_router.post("/css/{css_id}/react")
 async def react_to_css(css_id: str, reaction_type: str, current_user: dict = Depends(get_current_user)):
-    \"\"\"Add reaction to CSS\"\"\"
-    if reaction_type not in [\"wave\", \"pulse\", \"spiral\", \"color-shift\"]:
-        raise HTTPException(status_code=400, detail=\"Invalid reaction type\")
+    """Add reaction to CSS"""
+    if reaction_type not in ["wave", "pulse", "spiral", "color-shift"]:
+        raise HTTPException(status_code=400, detail="Invalid reaction type")
     
     reaction = CSSReaction(
         css_id=css_id,
@@ -834,23 +834,23 @@ async def react_to_css(css_id: str, reaction_type: str, current_user: dict = Dep
     doc['timestamp'] = doc['timestamp'].isoformat()
     await db.css_reactions.insert_one(doc)
     
-    return {\"message\": \"Reaction added\", \"reaction\": reaction_type}
+    return {"message": "Reaction added", "reaction": reaction_type}
 
-@api_router.get(\"/css/{css_id}/reactions\")
+@api_router.get("/css/{css_id}/reactions")
 async def get_css_reactions(css_id: str):
-    reactions = await db.css_reactions.find({\"css_id\": css_id}, {\"_id\": 0}).to_list(100)
-    return {\"reactions\": reactions, \"count\": len(reactions)}
+    reactions = await db.css_reactions.find({"css_id": css_id}, {"_id": 0}).to_list(100)
+    return {"reactions": reactions, "count": len(reactions)}
 
 # --- REFLECTION ---
 
-@api_router.post(\"/reflection/analyze\")
+@api_router.post("/reflection/analyze")
 async def analyze_css_reflection(reflection_req: ReflectionRequest, current_user: dict = Depends(get_current_user)):
-    css = await db.css_snapshots.find_one({\"id\": reflection_req.css_id}, {\"_id\": 0})
+    css = await db.css_snapshots.find_one({"id": reflection_req.css_id}, {"_id": 0})
     if not css:
-        raise HTTPException(status_code=404, detail=\"CSS not found\")
+        raise HTTPException(status_code=404, detail="CSS not found")
     
     # Use fallback reflection for now
-    reflection_text = \"Bu CSS, içinde bir yankı bırakıyor. Belki tanıdık, belki yabancı.\"
+    reflection_text = "Bu CSS, içinde bir yankı bırakıyor. Belki tanıdık, belki yabancı."
     
     reflection = Reflection(
         css_id=reflection_req.css_id,
@@ -862,46 +862,46 @@ async def analyze_css_reflection(reflection_req: ReflectionRequest, current_user
     doc['timestamp'] = doc['timestamp'].isoformat()
     await db.reflections.insert_one(doc)
     
-    return {\"reflection\": reflection_text, \"css\": css}
+    return {"reflection": reflection_text, "css": css}
 
 # --- PREMIUM ---
 
-@api_router.get(\"/premium/check\")
+@api_router.get("/premium/check")
 async def check_premium_status(current_user: dict = Depends(get_current_user)):
     return {
-        \"is_premium\": current_user.get('is_premium', False),
-        \"features\": {
-            \"ai_coach_unlimited\": current_user.get('is_premium', False),
-            \"avatar_unlimited\": current_user.get('is_premium', False),
-            \"room_analytics\": current_user.get('is_premium', False),
-            \"mood_forecast\": current_user.get('is_premium', False)
+        "is_premium": current_user.get('is_premium', False),
+        "features": {
+            "ai_coach_unlimited": current_user.get('is_premium', False),
+            "avatar_unlimited": current_user.get('is_premium', False),
+            "room_analytics": current_user.get('is_premium', False),
+            "mood_forecast": current_user.get('is_premium', False)
         }
     }
 
-@api_router.post(\"/premium/subscribe\")
+@api_router.post("/premium/subscribe")
 async def subscribe_premium(current_user: dict = Depends(get_current_user)):
-    \"\"\"Placeholder for Stripe integration\"\"\"
+    """Placeholder for Stripe integration"""
     await db.users.update_one(
-        {\"id\": current_user['id']},
-        {\"$set\": {
-            \"is_premium\": True
+        {"id": current_user['id']},
+        {"$set": {
+            "is_premium": True
         }}
     )
     
     await db.user_profiles.update_one(
-        {\"user_id\": current_user['id']},
-        {\"$set\": {
-            \"is_premium\": True,
-            \"premium_expires_at\": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+        {"user_id": current_user['id']},
+        {"$set": {
+            "is_premium": True,
+            "premium_expires_at": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
         }}
     )
     
-    return {\"message\": \"Premium activated\", \"success\": True}
+    return {"message": "Premium activated", "success": True}
 
 # --- WEBSOCKET ---
 
-@app.websocket(\"/ws/live-css\")
-async def websocket_live_css(websocket: WebSocket, room_id: str = \"global\"):
+@app.websocket("/ws/live-css")
+async def websocket_live_css(websocket: WebSocket, room_id: str = "global"):
     await manager.connect(websocket, room_id)
     try:
         while True:
@@ -918,8 +918,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=[\"*\"],
-    allow_headers=[\"*\"],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 logging.basicConfig(
@@ -928,23 +928,23 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-@app.on_event(\"startup\")
+@app.on_event("startup")
 async def create_indexes():
-    \"\"\"Create database indexes for optimal query performance\"\"\"
+    """Create database indexes for optimal query performance"""
     try:
-        await db.users.create_index(\"id\", unique=True)
-        await db.users.create_index(\"email\", unique=True)
-        await db.css_snapshots.create_index(\"id\", unique=True)
-        await db.css_snapshots.create_index([(\"user_id\", 1), (\"timestamp\", -1)])
-        await db.css_snapshots.create_index(\"location_hash\")
-        await db.rooms.create_index(\"room_code\", unique=True)
-        await db.room_members.create_index(\"room_id\")
-        await db.mood_journal.create_index([(\"user_id\", 1), (\"timestamp\", -1)])
-        await db.user_profiles.create_index(\"user_id\", unique=True)
-        logger.info(\"Database indexes created successfully\")
+        await db.users.create_index("id", unique=True)
+        await db.users.create_index("email", unique=True)
+        await db.css_snapshots.create_index("id", unique=True)
+        await db.css_snapshots.create_index([("user_id", 1), ("timestamp", -1)])
+        await db.css_snapshots.create_index("location_hash")
+        await db.rooms.create_index("room_code", unique=True)
+        await db.room_members.create_index("room_id")
+        await db.mood_journal.create_index([("user_id", 1), ("timestamp", -1)])
+        await db.user_profiles.create_index("user_id", unique=True)
+        logger.info("Database indexes created successfully")
     except Exception as e:
-        logger.warning(f\"Index creation warning: {e}\")
+        logger.warning(f"Index creation warning: {e}")
 
-@app.on_event(\"shutdown\")
+@app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()"
