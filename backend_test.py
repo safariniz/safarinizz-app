@@ -78,7 +78,7 @@ class CogitoSyncAPITester:
 
     def test_register(self):
         """Test user registration"""
-        test_email = f"test_{datetime.now().strftime('%H%M%S')}@cogitosync.test"
+        test_email = f"test_{datetime.now().strftime('%H%M%S')}@gmail.com"
         test_password = "TestPass123!"
         
         success, response = self.run_test(
