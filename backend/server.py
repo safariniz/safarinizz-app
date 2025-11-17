@@ -411,4 +411,540 @@ def calculate_empathy_score(css1_list: List[dict], css2_list: List[dict]) -> flo
     if not css1_list or not css2_list:
         return 0.0
     score = random.uniform(0.4, 0.95)
-    return round(score, 2)\n\n# =============== ROUTES ===============\n\n@api_router.get(\"/\")\nasync def root():\n    return {\"message\": \"CogitoSync AI - Production Platform v2.0\"}\n\n# --- AUTH ---\n\n@api_router.post(\"/auth/register\", response_model=TokenResponse)\nasync def register(user_data: UserRegister):\n    existing = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})\n    if existing:\n        raise HTTPException(status_code=400, detail=\"Email already registered\")\n    \n    user = User(\n        email=user_data.email,\n        password_hash=hash_password(user_data.password)\n    )\n    \n    doc = user.model_dump()\n    doc['created_at'] = doc['created_at'].isoformat()\n    await db.users.insert_one(doc)\n    \n    # Create user profile\n    profile = UserProfile(user_id=user.id)\n    profile_doc = profile.model_dump()\n    profile_doc['created_at'] = profile_doc['created_at'].isoformat()\n    await db.user_profiles.insert_one(profile_doc)\n    \n    token = create_access_token({\"user_id\": user.id, \"email\": user.email})\n    \n    return TokenResponse(\n        access_token=token,\n        user_id=user.id,\n        email=user.email,\n        is_premium=user.is_premium\n    )\n\n@api_router.post(\"/auth/login\", response_model=TokenResponse)\nasync def login(user_data: UserLogin):\n    user = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})\n    if not user:\n        raise HTTPException(status_code=401, detail=\"Invalid credentials\")\n    \n    if not verify_password(user_data.password, user['password_hash']):\n        raise HTTPException(status_code=401, detail=\"Invalid credentials\")\n    \n    token = create_access_token({\"user_id\": user['id'], \"email\": user['email']})\n    \n    return TokenResponse(\n        access_token=token,\n        user_id=user['id'],\n        email=user['email'],\n        is_premium=user.get('is_premium', False)\n    )\n\n# --- CSS ---\n\n@api_router.post(\"/css/create\", response_model=CSS)\nasync def create_css(css_input: CSSCreate, current_user: dict = Depends(get_current_user)):\n    css_data = await generate_css_with_ai(css_input.emotion_input)\n    \n    location_hash = None\n    if css_input.location:\n        location_hash = hash_location(css_input.location['lat'], css_input.location['lon'])\n    \n    css = CSS(\n        user_id=current_user['id'],\n        color=css_data['color'],\n        light_frequency=css_data['light_frequency'],\n        sound_texture=css_data['sound_texture'],\n        emotion_label=css_data['emotion_label'],\n        description=css_data['description'],\n        location_hash=location_hash\n    )\n    \n    doc = css.model_dump()\n    doc['timestamp'] = doc['timestamp'].isoformat()\n    await db.css_snapshots.insert_one(doc)\n    \n    # Add to mood journal\n    journal_entry = MoodJournalEntry(user_id=current_user['id'], css_id=css.id)\n    j_doc = journal_entry.model_dump()\n    j_doc['timestamp'] = j_doc['timestamp'].isoformat()\n    await db.mood_journal.insert_one(j_doc)\n    \n    # Broadcast to WebSocket (live mode)\n    await manager.broadcast({\n        \"type\": \"new_css\",\n        \"data\": doc\n    }, \"global\")\n    \n    return css\n\n@api_router.get(\"/css/my-history\", response_model=List[CSS])\nasync def get_my_css_history(current_user: dict = Depends(get_current_user)):\n    css_list = await db.css_snapshots.find(\n        {\"user_id\": current_user['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(100)\n    \n    for css in css_list:\n        if isinstance(css['timestamp'], str):\n            css['timestamp'] = datetime.fromisoformat(css['timestamp'])\n    \n    return css_list\n\n@api_router.get(\"/css/{css_id}\", response_model=CSS)\nasync def get_css_by_id(css_id: str):\n    css = await db.css_snapshots.find_one({\"id\": css_id}, {\"_id\": 0})\n    if not css:\n        raise HTTPException(status_code=404, detail=\"CSS not found\")\n    \n    if isinstance(css['timestamp'], str):\n        css['timestamp'] = datetime.fromisoformat(css['timestamp'])\n    \n    return css\n\n# --- VIBE RADAR ---\n\n@api_router.post(\"/vibe-radar/nearby\")\nasync def get_nearby_vibes(location: LocationInput, current_user: dict = Depends(get_current_user)):\n    \"\"\"Get nearby CSS signals (100m radius for privacy)\"\"\"\n    loc_hash = hash_location(location.lat, location.lon)\n    \n    # Find CSS with similar location hash\n    recent_css = await db.css_snapshots.find(\n        {\n            \"location_hash\": loc_hash,\n            \"timestamp\": {\"$gte\": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}\n        },\n        {\"_id\": 0, \"user_id\": 0}  # Privacy: hide user IDs\n    ).to_list(50)\n    \n    return {\"vibes\": recent_css, \"count\": len(recent_css)}\n\n# --- AVATAR ---\n\n@api_router.post(\"/avatar/generate\")\nasync def generate_avatar(current_user: dict = Depends(get_current_user)):\n    \"\"\"Generate AI avatar based on CSS patterns\"\"\"\n    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})\n    \n    if not profile:\n        raise HTTPException(status_code=404, detail=\"Profile not found\")\n    \n    # Check premium for unlimited regeneration\n    if not current_user.get('is_premium', False):\n        if profile.get('avatar_generated_at'):\n            last_gen = datetime.fromisoformat(profile['avatar_generated_at'])\n            if (datetime.now(timezone.utc) - last_gen).days < 30:\n                raise HTTPException(status_code=403, detail=\"Avatar can be regenerated every 30 days (Premium: unlimited)\")\n    \n    css_history = await db.css_snapshots.find(\n        {\"user_id\": current_user['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(20)\n    \n    if len(css_history) < 5:\n        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots to generate avatar\")\n    \n    avatar_url = await generate_avatar_with_ai(css_history)\n    \n    await db.user_profiles.update_one(\n        {\"user_id\": current_user['id']},\n        {\"$set\": {\n            \"avatar_url\": avatar_url,\n            \"avatar_generated_at\": datetime.now(timezone.utc).isoformat()\n        }}\n    )\n    \n    return {\"avatar_url\": avatar_url}\n\n@api_router.get(\"/avatar/my\")\nasync def get_my_avatar(current_user: dict = Depends(get_current_user)):\n    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})\n    return {\"avatar_url\": profile.get('avatar_url') if profile else None}\n\n# --- MOOD JOURNAL ---\n\n@api_router.get(\"/mood-journal/timeline\")\nasync def get_mood_timeline(period: str = \"daily\", current_user: dict = Depends(get_current_user)):\n    \"\"\"Get mood journal timeline\"\"\"\n    if period == \"daily\":\n        start_time = datetime.now(timezone.utc) - timedelta(days=1)\n    elif period == \"weekly\":\n        start_time = datetime.now(timezone.utc) - timedelta(days=7)\n    else:  # monthly\n        start_time = datetime.now(timezone.utc) - timedelta(days=30)\n    \n    entries = await db.mood_journal.find(\n        {\n            \"user_id\": current_user['id'],\n            \"timestamp\": {\"$gte\": start_time.isoformat()}\n        },\n        {\"_id\": 0}\n    ).to_list(1000)\n    \n    # Get CSS data for each entry\n    css_ids = [e['css_id'] for e in entries]\n    css_data = await db.css_snapshots.find(\n        {\"id\": {\"$in\": css_ids}},\n        {\"_id\": 0}\n    ).to_list(1000)\n    \n    return {\"entries\": entries, \"css_data\": css_data, \"period\": period}\n\n# --- AI COACH ---\n\n@api_router.get(\"/ai-coach/insights\")\nasync def get_ai_insights(current_user: dict = Depends(get_current_user)):\n    \"\"\"Get AI coach insights\"\"\"\n    if not current_user.get('is_premium', False):\n        # Free users: limited insights\n        recent_insight = await db.ai_insights.find_one(\n            {\"user_id\": current_user['id']},\n            {\"_id\": 0},\n            sort=[(\"created_at\", -1)]\n        )\n        if recent_insight and isinstance(recent_insight['created_at'], str):\n            recent_insight['created_at'] = datetime.fromisoformat(recent_insight['created_at'])\n        return {\"insight\": recent_insight, \"premium_required\": True}\n    \n    css_history = await db.css_snapshots.find(\n        {\"user_id\": current_user['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(50)\n    \n    insight_content = await generate_ai_insights(css_history)\n    \n    insight = AIInsight(\n        user_id=current_user['id'],\n        insight_type=\"daily\",\n        content=insight_content\n    )\n    \n    doc = insight.model_dump()\n    doc['created_at'] = doc['created_at'].isoformat()\n    await db.ai_insights.insert_one(doc)\n    \n    return {\"insight\": doc, \"premium_required\": False}\n\n# --- AI FORECAST ---\n\n@api_router.get(\"/ai-forecast/predict\")\nasync def get_mood_forecast(current_user: dict = Depends(get_current_user)):\n    \"\"\"Get 24h mood forecast\"\"\"\n    if not current_user.get('is_premium', False):\n        return {\"forecast\": None, \"premium_required\": True}\n    \n    css_history = await db.css_snapshots.find(\n        {\"user_id\": current_user['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(50)\n    \n    forecast_data = await generate_mood_forecast(css_history)\n    \n    forecast = AIForecast(\n        user_id=current_user['id'],\n        forecast_data=forecast_data,\n        valid_until=datetime.now(timezone.utc) + timedelta(hours=24)\n    )\n    \n    doc = forecast.model_dump()\n    doc['created_at'] = doc['created_at'].isoformat()\n    doc['valid_until'] = doc['valid_until'].isoformat()\n    await db.ai_forecasts.insert_one(doc)\n    \n    return {\"forecast\": forecast_data, \"premium_required\": False}\n\n# --- ROOMS ---\n\n@api_router.post(\"/room/create\", response_model=Room)\nasync def create_room(current_user: dict = Depends(get_current_user)):\n    room_code = str(uuid.uuid4())[:8].upper()\n    \n    room = Room(\n        room_code=room_code,\n        created_by=current_user['id']\n    )\n    \n    doc = room.model_dump()\n    doc['created_at'] = doc['created_at'].isoformat()\n    await db.rooms.insert_one(doc)\n    \n    return room\n\n@api_router.post(\"/room/join\")\nasync def join_room(join_data: RoomJoin, current_user: dict = Depends(get_current_user)):\n    room = await db.rooms.find_one({\"room_code\": join_data.room_code, \"is_active\": True}, {\"_id\": 0})\n    if not room:\n        raise HTTPException(status_code=404, detail=\"Room not found\")\n    \n    css = await db.css_snapshots.find_one({\"id\": join_data.css_id}, {\"_id\": 0})\n    if not css:\n        raise HTTPException(status_code=404, detail=\"CSS not found\")\n    \n    member = RoomMember(\n        room_id=room['id'],\n        user_id=current_user['id'],\n        css_id=join_data.css_id\n    )\n    \n    doc = member.model_dump()\n    doc['joined_at'] = doc['joined_at'].isoformat()\n    await db.room_members.insert_one(doc)\n    \n    # Broadcast to room\n    await manager.broadcast({\n        \"type\": \"member_joined\",\n        \"room_id\": room['id']\n    }, room['id'])\n    \n    return {\"message\": \"Joined room\", \"room_id\": room['id']}\n\n@api_router.get(\"/room/{room_id}/collective-css\", response_model=CollectiveCSS)\nasync def get_collective_css(room_id: str):\n    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)\n    \n    if not members:\n        return CollectiveCSS(\n            color=\"#E0E0E0\",\n            light_frequency=0.5,\n            sound_texture=\"smooth\",\n            emotion_label=\"Boş Oda\",\n            description=\"Henüz kimse katılmadı.\",\n            member_count=0\n        )\n    \n    css_ids = [m['css_id'] for m in members]\n    css_list = await db.css_snapshots.find(\n        {\"id\": {\"$in\": css_ids}}, \n        {\"_id\": 0}\n    ).to_list(100)\n    \n    collective = calculate_collective_css(css_list)\n    collective['member_count'] = len(members)\n    \n    return collective\n\n@api_router.get(\"/room/{room_id}/members\")\nasync def get_room_members(room_id: str):\n    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)\n    return {\"members\": members, \"count\": len(members)}\n\n@api_router.get(\"/room/{room_id}/dynamics\")\nasync def get_room_dynamics_endpoint(room_id: str, current_user: dict = Depends(get_current_user)):\n    \"\"\"Get AI-powered room dynamics\"\"\"\n    if not current_user.get('is_premium', False):\n        return {\"dynamics\": None, \"premium_required\": True}\n    \n    dynamics = await analyze_room_dynamics(room_id)\n    return {\"dynamics\": dynamics, \"premium_required\": False}\n\n# --- EMPATHY MATCH ---\n\n@api_router.get(\"/empathy/find-match\")\nasync def find_empathy_match(current_user: dict = Depends(get_current_user)):\n    \"\"\"Find anonymous empathy match\"\"\"\n    my_css = await db.css_snapshots.find(\n        {\"user_id\": current_user['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(20)\n    \n    if len(my_css) < 5:\n        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots for matching\")\n    \n    # Find potential matches (simplified)\n    other_users = await db.users.find(\n        {\"id\": {\"$ne\": current_user['id']}},\n        {\"_id\": 0, \"id\": 1}\n    ).limit(10).to_list(10)\n    \n    if not other_users:\n        return {\"match\": None, \"message\": \"No matches available yet\"}\n    \n    # Calculate compatibility\n    best_match = random.choice(other_users)\n    other_css = await db.css_snapshots.find(\n        {\"user_id\": best_match['id']},\n        {\"_id\": 0}\n    ).sort(\"timestamp\", -1).to_list(20)\n    \n    score = calculate_empathy_score(my_css, other_css)\n    \n    match = EmpathyMatch(\n        user1_id=current_user['id'],\n        user2_id=best_match['id'],\n        compatibility_score=score\n    )\n    \n    doc = match.model_dump()\n    doc['created_at'] = doc['created_at'].isoformat()\n    await db.empathy_matches.insert_one(doc)\n    \n    return {\n        \"match\": {\n            \"compatibility_score\": score,\n            \"matched_at\": doc['created_at']\n        },\n        \"message\": \"Vibe matched!\"\n    }\n\n# --- CSS REACTIONS ---\n\n@api_router.post(\"/css/{css_id}/react\")\nasync def react_to_css(css_id: str, reaction_type: str, current_user: dict = Depends(get_current_user)):\n    \"\"\"Add reaction to CSS\"\"\"\n    if reaction_type not in [\"wave\", \"pulse\", \"spiral\", \"color-shift\"]:\n        raise HTTPException(status_code=400, detail=\"Invalid reaction type\")\n    \n    reaction = CSSReaction(\n        css_id=css_id,\n        user_id=current_user['id'],\n        reaction_type=reaction_type\n    )\n    \n    doc = reaction.model_dump()\n    doc['timestamp'] = doc['timestamp'].isoformat()\n    await db.css_reactions.insert_one(doc)\n    \n    return {\"message\": \"Reaction added\", \"reaction\": reaction_type}\n\n@api_router.get(\"/css/{css_id}/reactions\")\nasync def get_css_reactions(css_id: str):\n    reactions = await db.css_reactions.find({\"css_id\": css_id}, {\"_id\": 0}).to_list(100)\n    return {\"reactions\": reactions, \"count\": len(reactions)}\n\n# --- REFLECTION ---\n\n@api_router.post(\"/reflection/analyze\")\nasync def analyze_css_reflection(reflection_req: ReflectionRequest, current_user: dict = Depends(get_current_user)):\n    css = await db.css_snapshots.find_one({\"id\": reflection_req.css_id}, {\"_id\": 0})\n    if not css:\n        raise HTTPException(status_code=404, detail=\"CSS not found\")\n    \n    # Use fallback reflection for now\n    reflection_text = \"Bu CSS, içinde bir yankı bırakıyor. Belki tanıdık, belki yabancı.\"\n    \n    reflection = Reflection(\n        css_id=reflection_req.css_id,\n        viewer_user_id=current_user['id'],\n        reflection_text=reflection_text\n    )\n    \n    doc = reflection.model_dump()\n    doc['timestamp'] = doc['timestamp'].isoformat()\n    await db.reflections.insert_one(doc)\n    \n    return {\"reflection\": reflection_text, \"css\": css}\n\n# --- PREMIUM ---\n\n@api_router.get(\"/premium/check\")\nasync def check_premium_status(current_user: dict = Depends(get_current_user)):\n    return {\n        \"is_premium\": current_user.get('is_premium', False),\n        \"features\": {\n            \"ai_coach_unlimited\": current_user.get('is_premium', False),\n            \"avatar_unlimited\": current_user.get('is_premium', False),\n            \"room_analytics\": current_user.get('is_premium', False),\n            \"mood_forecast\": current_user.get('is_premium', False)\n        }\n    }\n\n@api_router.post(\"/premium/subscribe\")\nasync def subscribe_premium(current_user: dict = Depends(get_current_user)):\n    \"\"\"Placeholder for Stripe integration\"\"\"\n    await db.users.update_one(\n        {\"id\": current_user['id']},\n        {\"$set\": {\n            \"is_premium\": True\n        }}\n    )\n    \n    await db.user_profiles.update_one(\n        {\"user_id\": current_user['id']},\n        {\"$set\": {\n            \"is_premium\": True,\n            \"premium_expires_at\": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()\n        }}\n    )\n    \n    return {\"message\": \"Premium activated\", \"success\": True}\n\n# --- WEBSOCKET ---\n\n@app.websocket(\"/ws/live-css\")\nasync def websocket_live_css(websocket: WebSocket, room_id: str = \"global\"):\n    await manager.connect(websocket, room_id)\n    try:\n        while True:\n            data = await websocket.receive_text()\n            # Keep connection alive\n            await asyncio.sleep(1)\n    except WebSocketDisconnect:\n        manager.disconnect(websocket, room_id)\n\n# Include router\napp.include_router(api_router)\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_credentials=True,\n    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),\n    allow_methods=[\"*\"],\n    allow_headers=[\"*\"],\n)\n\nlogging.basicConfig(\n    level=logging.INFO,\n    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'\n)\nlogger = logging.getLogger(__name__)\n\n@app.on_event(\"startup\")\nasync def create_indexes():\n    \"\"\"Create database indexes for optimal query performance\"\"\"\n    try:\n        await db.users.create_index(\"id\", unique=True)\n        await db.users.create_index(\"email\", unique=True)\n        await db.css_snapshots.create_index(\"id\", unique=True)\n        await db.css_snapshots.create_index([(\"user_id\", 1), (\"timestamp\", -1)])\n        await db.css_snapshots.create_index(\"location_hash\")\n        await db.rooms.create_index(\"room_code\", unique=True)\n        await db.room_members.create_index(\"room_id\")\n        await db.mood_journal.create_index([(\"user_id\", 1), (\"timestamp\", -1)])\n        await db.user_profiles.create_index(\"user_id\", unique=True)\n        logger.info(\"Database indexes created successfully\")\n    except Exception as e:\n        logger.warning(f\"Index creation warning: {e}\")\n\n@app.on_event(\"shutdown\")\nasync def shutdown_db_client():\n    client.close()"
+    return round(score, 2)
+
+# =============== ROUTES ===============
+
+@api_router.get(\"/\")
+async def root():
+    return {\"message\": \"CogitoSync AI - Production Platform v2.0\"}
+
+# --- AUTH ---
+
+@api_router.post(\"/auth/register\", response_model=TokenResponse)
+async def register(user_data: UserRegister):
+    existing = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})
+    if existing:
+        raise HTTPException(status_code=400, detail=\"Email already registered\")
+    
+    user = User(
+        email=user_data.email,
+        password_hash=hash_password(user_data.password)
+    )
+    
+    doc = user.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.users.insert_one(doc)
+    
+    # Create user profile
+    profile = UserProfile(user_id=user.id)
+    profile_doc = profile.model_dump()
+    profile_doc['created_at'] = profile_doc['created_at'].isoformat()
+    await db.user_profiles.insert_one(profile_doc)
+    
+    token = create_access_token({\"user_id\": user.id, \"email\": user.email})
+    
+    return TokenResponse(
+        access_token=token,
+        user_id=user.id,
+        email=user.email,
+        is_premium=user.is_premium
+    )
+
+@api_router.post(\"/auth/login\", response_model=TokenResponse)
+async def login(user_data: UserLogin):
+    user = await db.users.find_one({\"email\": user_data.email}, {\"_id\": 0})
+    if not user:
+        raise HTTPException(status_code=401, detail=\"Invalid credentials\")
+    
+    if not verify_password(user_data.password, user['password_hash']):
+        raise HTTPException(status_code=401, detail=\"Invalid credentials\")
+    
+    token = create_access_token({\"user_id\": user['id'], \"email\": user['email']})
+    
+    return TokenResponse(
+        access_token=token,
+        user_id=user['id'],
+        email=user['email'],
+        is_premium=user.get('is_premium', False)
+    )
+
+# --- CSS ---
+
+@api_router.post(\"/css/create\", response_model=CSS)
+async def create_css(css_input: CSSCreate, current_user: dict = Depends(get_current_user)):
+    css_data = await generate_css_with_ai(css_input.emotion_input)
+    
+    location_hash = None
+    if css_input.location:
+        location_hash = hash_location(css_input.location['lat'], css_input.location['lon'])
+    
+    css = CSS(
+        user_id=current_user['id'],
+        color=css_data['color'],
+        light_frequency=css_data['light_frequency'],
+        sound_texture=css_data['sound_texture'],
+        emotion_label=css_data['emotion_label'],
+        description=css_data['description'],
+        location_hash=location_hash
+    )
+    
+    doc = css.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.css_snapshots.insert_one(doc)
+    
+    # Add to mood journal
+    journal_entry = MoodJournalEntry(user_id=current_user['id'], css_id=css.id)
+    j_doc = journal_entry.model_dump()
+    j_doc['timestamp'] = j_doc['timestamp'].isoformat()
+    await db.mood_journal.insert_one(j_doc)
+    
+    # Broadcast to WebSocket (live mode)
+    await manager.broadcast({
+        \"type\": \"new_css\",
+        \"data\": doc
+    }, \"global\")
+    
+    return css
+
+@api_router.get(\"/css/my-history\", response_model=List[CSS])
+async def get_my_css_history(current_user: dict = Depends(get_current_user)):
+    css_list = await db.css_snapshots.find(
+        {\"user_id\": current_user['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(100)
+    
+    for css in css_list:
+        if isinstance(css['timestamp'], str):
+            css['timestamp'] = datetime.fromisoformat(css['timestamp'])
+    
+    return css_list
+
+@api_router.get(\"/css/{css_id}\", response_model=CSS)
+async def get_css_by_id(css_id: str):
+    css = await db.css_snapshots.find_one({\"id\": css_id}, {\"_id\": 0})
+    if not css:
+        raise HTTPException(status_code=404, detail=\"CSS not found\")
+    
+    if isinstance(css['timestamp'], str):
+        css['timestamp'] = datetime.fromisoformat(css['timestamp'])
+    
+    return css
+
+# --- VIBE RADAR ---
+
+@api_router.post(\"/vibe-radar/nearby\")
+async def get_nearby_vibes(location: LocationInput, current_user: dict = Depends(get_current_user)):
+    \"\"\"Get nearby CSS signals (100m radius for privacy)\"\"\"
+    loc_hash = hash_location(location.lat, location.lon)
+    
+    # Find CSS with similar location hash
+    recent_css = await db.css_snapshots.find(
+        {
+            \"location_hash\": loc_hash,
+            \"timestamp\": {\"$gte\": (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()}
+        },
+        {\"_id\": 0, \"user_id\": 0}  # Privacy: hide user IDs
+    ).to_list(50)
+    
+    return {\"vibes\": recent_css, \"count\": len(recent_css)}
+
+# --- AVATAR ---
+
+@api_router.post(\"/avatar/generate\")
+async def generate_avatar(current_user: dict = Depends(get_current_user)):
+    \"\"\"Generate AI avatar based on CSS patterns\"\"\"
+    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})
+    
+    if not profile:
+        raise HTTPException(status_code=404, detail=\"Profile not found\")
+    
+    # Check premium for unlimited regeneration
+    if not current_user.get('is_premium', False):
+        if profile.get('avatar_generated_at'):
+            last_gen = datetime.fromisoformat(profile['avatar_generated_at'])
+            if (datetime.now(timezone.utc) - last_gen).days < 30:
+                raise HTTPException(status_code=403, detail=\"Avatar can be regenerated every 30 days (Premium: unlimited)\")
+    
+    css_history = await db.css_snapshots.find(
+        {\"user_id\": current_user['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(20)
+    
+    if len(css_history) < 5:
+        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots to generate avatar\")
+    
+    avatar_url = await generate_avatar_with_ai(css_history)
+    
+    await db.user_profiles.update_one(
+        {\"user_id\": current_user['id']},
+        {\"$set\": {
+            \"avatar_url\": avatar_url,
+            \"avatar_generated_at\": datetime.now(timezone.utc).isoformat()
+        }}
+    )
+    
+    return {\"avatar_url\": avatar_url}
+
+@api_router.get(\"/avatar/my\")
+async def get_my_avatar(current_user: dict = Depends(get_current_user)):
+    profile = await db.user_profiles.find_one({\"user_id\": current_user['id']}, {\"_id\": 0})
+    return {\"avatar_url\": profile.get('avatar_url') if profile else None}
+
+# --- MOOD JOURNAL ---
+
+@api_router.get(\"/mood-journal/timeline\")
+async def get_mood_timeline(period: str = \"daily\", current_user: dict = Depends(get_current_user)):
+    \"\"\"Get mood journal timeline\"\"\"
+    if period == \"daily\":
+        start_time = datetime.now(timezone.utc) - timedelta(days=1)
+    elif period == \"weekly\":
+        start_time = datetime.now(timezone.utc) - timedelta(days=7)
+    else:  # monthly
+        start_time = datetime.now(timezone.utc) - timedelta(days=30)
+    
+    entries = await db.mood_journal.find(
+        {
+            \"user_id\": current_user['id'],
+            \"timestamp\": {\"$gte\": start_time.isoformat()}
+        },
+        {\"_id\": 0}
+    ).to_list(1000)
+    
+    # Get CSS data for each entry
+    css_ids = [e['css_id'] for e in entries]
+    css_data = await db.css_snapshots.find(
+        {\"id\": {\"$in\": css_ids}},
+        {\"_id\": 0}
+    ).to_list(1000)
+    
+    return {\"entries\": entries, \"css_data\": css_data, \"period\": period}
+
+# --- AI COACH ---
+
+@api_router.get(\"/ai-coach/insights\")
+async def get_ai_insights(current_user: dict = Depends(get_current_user)):
+    \"\"\"Get AI coach insights\"\"\"
+    if not current_user.get('is_premium', False):
+        # Free users: limited insights
+        recent_insight = await db.ai_insights.find_one(
+            {\"user_id\": current_user['id']},
+            {\"_id\": 0},
+            sort=[(\"created_at\", -1)]
+        )
+        if recent_insight and isinstance(recent_insight['created_at'], str):
+            recent_insight['created_at'] = datetime.fromisoformat(recent_insight['created_at'])
+        return {\"insight\": recent_insight, \"premium_required\": True}
+    
+    css_history = await db.css_snapshots.find(
+        {\"user_id\": current_user['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(50)
+    
+    insight_content = await generate_ai_insights(css_history)
+    
+    insight = AIInsight(
+        user_id=current_user['id'],
+        insight_type=\"daily\",
+        content=insight_content
+    )
+    
+    doc = insight.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.ai_insights.insert_one(doc)
+    
+    return {\"insight\": doc, \"premium_required\": False}
+
+# --- AI FORECAST ---
+
+@api_router.get(\"/ai-forecast/predict\")
+async def get_mood_forecast(current_user: dict = Depends(get_current_user)):
+    \"\"\"Get 24h mood forecast\"\"\"
+    if not current_user.get('is_premium', False):
+        return {\"forecast\": None, \"premium_required\": True}
+    
+    css_history = await db.css_snapshots.find(
+        {\"user_id\": current_user['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(50)
+    
+    forecast_data = await generate_mood_forecast(css_history)
+    
+    forecast = AIForecast(
+        user_id=current_user['id'],
+        forecast_data=forecast_data,
+        valid_until=datetime.now(timezone.utc) + timedelta(hours=24)
+    )
+    
+    doc = forecast.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    doc['valid_until'] = doc['valid_until'].isoformat()
+    await db.ai_forecasts.insert_one(doc)
+    
+    return {\"forecast\": forecast_data, \"premium_required\": False}
+
+# --- ROOMS ---
+
+@api_router.post(\"/room/create\", response_model=Room)
+async def create_room(current_user: dict = Depends(get_current_user)):
+    room_code = str(uuid.uuid4())[:8].upper()
+    
+    room = Room(
+        room_code=room_code,
+        created_by=current_user['id']
+    )
+    
+    doc = room.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.rooms.insert_one(doc)
+    
+    return room
+
+@api_router.post(\"/room/join\")
+async def join_room(join_data: RoomJoin, current_user: dict = Depends(get_current_user)):
+    room = await db.rooms.find_one({\"room_code\": join_data.room_code, \"is_active\": True}, {\"_id\": 0})
+    if not room:
+        raise HTTPException(status_code=404, detail=\"Room not found\")
+    
+    css = await db.css_snapshots.find_one({\"id\": join_data.css_id}, {\"_id\": 0})
+    if not css:
+        raise HTTPException(status_code=404, detail=\"CSS not found\")
+    
+    member = RoomMember(
+        room_id=room['id'],
+        user_id=current_user['id'],
+        css_id=join_data.css_id
+    )
+    
+    doc = member.model_dump()
+    doc['joined_at'] = doc['joined_at'].isoformat()
+    await db.room_members.insert_one(doc)
+    
+    # Broadcast to room
+    await manager.broadcast({
+        \"type\": \"member_joined\",
+        \"room_id\": room['id']
+    }, room['id'])
+    
+    return {\"message\": \"Joined room\", \"room_id\": room['id']}
+
+@api_router.get(\"/room/{room_id}/collective-css\", response_model=CollectiveCSS)
+async def get_collective_css(room_id: str):
+    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)
+    
+    if not members:
+        return CollectiveCSS(
+            color=\"#E0E0E0\",
+            light_frequency=0.5,
+            sound_texture=\"smooth\",
+            emotion_label=\"Boş Oda\",
+            description=\"Henüz kimse katılmadı.\",
+            member_count=0
+        )
+    
+    css_ids = [m['css_id'] for m in members]
+    css_list = await db.css_snapshots.find(
+        {\"id\": {\"$in\": css_ids}}, 
+        {\"_id\": 0}
+    ).to_list(100)
+    
+    collective = calculate_collective_css(css_list)
+    collective['member_count'] = len(members)
+    
+    return collective
+
+@api_router.get(\"/room/{room_id}/members\")
+async def get_room_members(room_id: str):
+    members = await db.room_members.find({\"room_id\": room_id}, {\"_id\": 0}).to_list(100)
+    return {\"members\": members, \"count\": len(members)}
+
+@api_router.get(\"/room/{room_id}/dynamics\")
+async def get_room_dynamics_endpoint(room_id: str, current_user: dict = Depends(get_current_user)):
+    \"\"\"Get AI-powered room dynamics\"\"\"
+    if not current_user.get('is_premium', False):
+        return {\"dynamics\": None, \"premium_required\": True}
+    
+    dynamics = await analyze_room_dynamics(room_id)
+    return {\"dynamics\": dynamics, \"premium_required\": False}
+
+# --- EMPATHY MATCH ---
+
+@api_router.get(\"/empathy/find-match\")
+async def find_empathy_match(current_user: dict = Depends(get_current_user)):
+    \"\"\"Find anonymous empathy match\"\"\"
+    my_css = await db.css_snapshots.find(
+        {\"user_id\": current_user['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(20)
+    
+    if len(my_css) < 5:
+        raise HTTPException(status_code=400, detail=\"Need at least 5 CSS snapshots for matching\")
+    
+    # Find potential matches (simplified)
+    other_users = await db.users.find(
+        {\"id\": {\"$ne\": current_user['id']}},
+        {\"_id\": 0, \"id\": 1}
+    ).limit(10).to_list(10)
+    
+    if not other_users:
+        return {\"match\": None, \"message\": \"No matches available yet\"}
+    
+    # Calculate compatibility
+    best_match = random.choice(other_users)
+    other_css = await db.css_snapshots.find(
+        {\"user_id\": best_match['id']},
+        {\"_id\": 0}
+    ).sort(\"timestamp\", -1).to_list(20)
+    
+    score = calculate_empathy_score(my_css, other_css)
+    
+    match = EmpathyMatch(
+        user1_id=current_user['id'],
+        user2_id=best_match['id'],
+        compatibility_score=score
+    )
+    
+    doc = match.model_dump()
+    doc['created_at'] = doc['created_at'].isoformat()
+    await db.empathy_matches.insert_one(doc)
+    
+    return {
+        \"match\": {
+            \"compatibility_score\": score,
+            \"matched_at\": doc['created_at']
+        },
+        \"message\": \"Vibe matched!\"
+    }
+
+# --- CSS REACTIONS ---
+
+@api_router.post(\"/css/{css_id}/react\")
+async def react_to_css(css_id: str, reaction_type: str, current_user: dict = Depends(get_current_user)):
+    \"\"\"Add reaction to CSS\"\"\"
+    if reaction_type not in [\"wave\", \"pulse\", \"spiral\", \"color-shift\"]:
+        raise HTTPException(status_code=400, detail=\"Invalid reaction type\")
+    
+    reaction = CSSReaction(
+        css_id=css_id,
+        user_id=current_user['id'],
+        reaction_type=reaction_type
+    )
+    
+    doc = reaction.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.css_reactions.insert_one(doc)
+    
+    return {\"message\": \"Reaction added\", \"reaction\": reaction_type}
+
+@api_router.get(\"/css/{css_id}/reactions\")
+async def get_css_reactions(css_id: str):
+    reactions = await db.css_reactions.find({\"css_id\": css_id}, {\"_id\": 0}).to_list(100)
+    return {\"reactions\": reactions, \"count\": len(reactions)}
+
+# --- REFLECTION ---
+
+@api_router.post(\"/reflection/analyze\")
+async def analyze_css_reflection(reflection_req: ReflectionRequest, current_user: dict = Depends(get_current_user)):
+    css = await db.css_snapshots.find_one({\"id\": reflection_req.css_id}, {\"_id\": 0})
+    if not css:
+        raise HTTPException(status_code=404, detail=\"CSS not found\")
+    
+    # Use fallback reflection for now
+    reflection_text = \"Bu CSS, içinde bir yankı bırakıyor. Belki tanıdık, belki yabancı.\"
+    
+    reflection = Reflection(
+        css_id=reflection_req.css_id,
+        viewer_user_id=current_user['id'],
+        reflection_text=reflection_text
+    )
+    
+    doc = reflection.model_dump()
+    doc['timestamp'] = doc['timestamp'].isoformat()
+    await db.reflections.insert_one(doc)
+    
+    return {\"reflection\": reflection_text, \"css\": css}
+
+# --- PREMIUM ---
+
+@api_router.get(\"/premium/check\")
+async def check_premium_status(current_user: dict = Depends(get_current_user)):
+    return {
+        \"is_premium\": current_user.get('is_premium', False),
+        \"features\": {
+            \"ai_coach_unlimited\": current_user.get('is_premium', False),
+            \"avatar_unlimited\": current_user.get('is_premium', False),
+            \"room_analytics\": current_user.get('is_premium', False),
+            \"mood_forecast\": current_user.get('is_premium', False)
+        }
+    }
+
+@api_router.post(\"/premium/subscribe\")
+async def subscribe_premium(current_user: dict = Depends(get_current_user)):
+    \"\"\"Placeholder for Stripe integration\"\"\"
+    await db.users.update_one(
+        {\"id\": current_user['id']},
+        {\"$set\": {
+            \"is_premium\": True
+        }}
+    )
+    
+    await db.user_profiles.update_one(
+        {\"user_id\": current_user['id']},
+        {\"$set\": {
+            \"is_premium\": True,
+            \"premium_expires_at\": (datetime.now(timezone.utc) + timedelta(days=365)).isoformat()
+        }}
+    )
+    
+    return {\"message\": \"Premium activated\", \"success\": True}
+
+# --- WEBSOCKET ---
+
+@app.websocket(\"/ws/live-css\")
+async def websocket_live_css(websocket: WebSocket, room_id: str = \"global\"):
+    await manager.connect(websocket, room_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # Keep connection alive
+            await asyncio.sleep(1)
+    except WebSocketDisconnect:
+        manager.disconnect(websocket, room_id)
+
+# Include router
+app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=[\"*\"],
+    allow_headers=[\"*\"],
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+@app.on_event(\"startup\")
+async def create_indexes():
+    \"\"\"Create database indexes for optimal query performance\"\"\"
+    try:
+        await db.users.create_index(\"id\", unique=True)
+        await db.users.create_index(\"email\", unique=True)
+        await db.css_snapshots.create_index(\"id\", unique=True)
+        await db.css_snapshots.create_index([(\"user_id\", 1), (\"timestamp\", -1)])
+        await db.css_snapshots.create_index(\"location_hash\")
+        await db.rooms.create_index(\"room_code\", unique=True)
+        await db.room_members.create_index(\"room_id\")
+        await db.mood_journal.create_index([(\"user_id\", 1), (\"timestamp\", -1)])
+        await db.user_profiles.create_index(\"user_id\", unique=True)
+        logger.info(\"Database indexes created successfully\")
+    except Exception as e:
+        logger.warning(f\"Index creation warning: {e}\")
+
+@app.on_event(\"shutdown\")
+async def shutdown_db_client():
+    client.close()"
