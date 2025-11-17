@@ -402,8 +402,16 @@ async def join_room(join_data: RoomJoin, current_user: dict = Depends(get_curren
 async def get_collective_css(room_id: str):
     members = await db.room_members.find({"room_id": room_id}, {"_id": 0}).to_list(100)
     
+    # Return empty collective CSS if no members (instead of 404)
     if not members:
-        raise HTTPException(status_code=404, detail="No members in room")
+        return CollectiveCSS(
+            color="#E0E0E0",
+            light_frequency=0.5,
+            sound_texture="smooth",
+            emotion_label="Boş Oda",
+            description="Henüz kimse katılmadı.",
+            member_count=0
+        )
     
     # Get all CSS snapshots
     css_ids = [m['css_id'] for m in members]
