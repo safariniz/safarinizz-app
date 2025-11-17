@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import '@/App.css';
 import AuthPage from '@/pages/AuthPage';
-import Dashboard from '@/pages/Dashboard';
+import DashboardV2 from '@/pages/DashboardV2';
 import HistoryPage from '@/pages/HistoryPage';
 import RoomPage from '@/pages/RoomPage';
+import PremiumPage from '@/pages/PremiumPage';
 import { Toaster } from '@/components/ui/sonner';
 
 function App() {
@@ -35,7 +36,7 @@ function App() {
           />
           <Route 
             path="/" 
-            element={token ? <Dashboard onLogout={handleLogout} /> : <Navigate to="/auth" />} 
+            element={token ? <DashboardV2 onLogout={handleLogout} /> : <Navigate to="/auth" />} 
           />
           <Route 
             path="/history" 
@@ -44,6 +45,10 @@ function App() {
           <Route 
             path="/room/:roomId?" 
             element={token ? <RoomPage onLogout={handleLogout} /> : <Navigate to="/auth" />} 
+          />
+          <Route 
+            path="/premium" 
+            element={token ? <PremiumPage /> : <Navigate to="/auth" />} 
           />
         </Routes>
       </BrowserRouter>
