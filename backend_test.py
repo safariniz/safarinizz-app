@@ -100,7 +100,7 @@ class CogitoSyncAPITester:
     def test_login(self):
         """Test user login with existing credentials"""
         # Try to login with a test account
-        test_email = "test@cogitosync.test"
+        test_email = "test@gmail.com"
         test_password = "TestPass123!"
         
         success, response = self.run_test(
