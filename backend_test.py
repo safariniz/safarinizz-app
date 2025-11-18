@@ -2,15 +2,22 @@ import requests
 import sys
 import json
 from datetime import datetime
+import uuid
+import time
 
-class CogitoSyncAPITester:
+class CogitoSyncV3APITester:
     def __init__(self, base_url="https://vibemind-1.preview.emergentagent.com/api"):
         self.base_url = base_url
         self.token = None
         self.user_id = None
+        self.profile_id = None
+        self.css_id = None
+        self.session_id = None
+        self.room_id = None
         self.tests_run = 0
         self.tests_passed = 0
         self.test_results = []
+        self.critical_failures = []
 
     def log_test(self, name, success, details=""):
         """Log test result"""
