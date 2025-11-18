@@ -579,18 +579,28 @@ class CogitoSyncV3APITester:
         print("=" * 60)
 
 def main():
-    tester = CogitoSyncAPITester()
+    tester = CogitoSyncV3APITester()
     success = tester.run_all_tests()
     
+    # Create test reports directory if it doesn't exist
+    import os
+    os.makedirs('/app/test_reports', exist_ok=True)
+    
     # Save detailed results
-    with open('/app/test_reports/backend_api_results.json', 'w') as f:
+    with open('/app/test_reports/cogitosync_v3_backend_results.json', 'w') as f:
         json.dump({
             'timestamp': datetime.now().isoformat(),
+            'version': '3.0.0',
+            'backend_url': tester.base_url,
             'total_tests': tester.tests_run,
             'passed_tests': tester.tests_passed,
+            'failed_tests': tester.tests_run - tester.tests_passed,
             'success_rate': (tester.tests_passed / tester.tests_run * 100) if tester.tests_run > 0 else 0,
-            'results': tester.test_results
+            'critical_failures': tester.critical_failures,
+            'detailed_results': tester.test_results
         }, f, indent=2)
+    
+    print(f"\n📄 Detailed results saved to: /app/test_reports/cogitosync_v3_backend_results.json")
     
     return 0 if success else 1
 
