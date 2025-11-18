@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Sparkles, Activity, TrendingUp, Radar, Heart } from 'lucide-react';
+import { Sparkles, Activity, User, MessageCircle, Users } from 'lucide-react';
 
 export default function MobileNav() {
   const navigate = useNavigate();
@@ -8,10 +8,10 @@ export default function MobileNav() {
 
   const tabs = [
     { id: 'create', label: 'CSS', icon: Sparkles, path: '/' },
-    { id: 'live', label: 'Canlı', icon: Activity, path: '/live' },
-    { id: 'insights', label: 'İçgörü', icon: TrendingUp, path: '/insights' },
-    { id: 'radar', label: 'Radar', icon: Radar, path: '/radar' },
-    { id: 'match', label: 'Eşleş', icon: Heart, path: '/match' }
+    { id: 'feed', label: 'Feed', icon: Activity, path: '/feed' },
+    { id: 'coach', label: 'Coach', icon: MessageCircle, path: '/coach' },
+    { id: 'rooms', label: 'Rooms', icon: Users, path: '/community-rooms' },
+    { id: 'profile', label: 'Profile', icon: User, path: '/profile' }
   ];
 
   const isActive = (path) => location.pathname === path;
