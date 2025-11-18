@@ -17,4 +17,129 @@ import PremiumPage from '@/pages/PremiumPage';
 import MobileHeader from '@/components/MobileHeader';
 import MobileNav from '@/components/MobileNav';
 import { Toaster } from '@/components/ui/sonner';
-import axios from 'axios';\n\nconst BACKEND_URL = process.env.REACT_APP_BACKEND_URL;\nconst API = `${BACKEND_URL}/api`;\n\nfunction AppLayout({ children, onLogout, isPremium }) {\n  const location = useLocation();\n  const hideNavRoutes = ['/auth', '/premium', '/history', '/room'];\n  const showNav = !hideNavRoutes.some(route => location.pathname.startsWith(route));\n\n  return (\n    <>\n      {showNav && <MobileHeader isPremium={isPremium} onLogout={onLogout} />}\n      <main \n        className={showNav ? 'mobile-main' : ''}\n        style={{\n          paddingTop: showNav ? 'calc(3.5rem + env(safe-area-inset-top))' : '0',\n          paddingBottom: showNav ? 'calc(4rem + env(safe-area-inset-bottom))' : '0',\n          minHeight: '100vh'\n        }}\n      >\n        {children}\n      </main>\n      {showNav && <MobileNav />}\n    </>\n  );\n}\n\nfunction App() {\n  const [token, setToken] = useState(localStorage.getItem('cogito_token'));\n  const [userId, setUserId] = useState(localStorage.getItem('cogito_user_id'));\n  const [isPremium, setIsPremium] = useState(false);\n\n  useEffect(() => {\n    if (token) {\n      checkPremiumStatus();\n    }\n    registerServiceWorker();\n  }, [token]);\n\n  const registerServiceWorker = () => {\n    if ('serviceWorker' in navigator) {\n      window.addEventListener('load', () => {\n        navigator.serviceWorker.register('/service-worker.js')\n          .then(reg => console.log('SW registered:', reg.scope))\n          .catch(err => console.log('SW registration failed:', err));\n      });\n    }\n  };\n\n  const checkPremiumStatus = async () => {\n    try {\n      const response = await axios.get(`${API}/premium/check`, {\n        headers: { Authorization: `Bearer ${token}` }\n      });\n      setIsPremium(response.data.is_premium);\n    } catch (error) {\n      console.error('Premium status check failed');\n    }\n  };\n\n  const handleLogin = (newToken, newUserId) => {\n    localStorage.setItem('cogito_token', newToken);\n    localStorage.setItem('cogito_user_id', newUserId);\n    setToken(newToken);\n    setUserId(newUserId);\n  };\n\n  const handleLogout = () => {\n    localStorage.removeItem('cogito_token');\n    localStorage.removeItem('cogito_user_id');\n    setToken(null);\n    setUserId(null);\n    setIsPremium(false);\n  };\n\n  return (\n    <div className=\"App\">\n      <BrowserRouter>\n        <AppLayout onLogout={handleLogout} isPremium={isPremium}>\n          <Routes>\n            <Route \n              path=\"/auth\" \n              element={!token ? <AuthPage onLogin={handleLogin} /> : <Navigate to=\"/\" />} \n            />\n            <Route \n              path=\"/\" \n              element={token ? <CreatePage /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/live\" \n              element={token ? <LivePage /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/insights\" \n              element={token ? <InsightsPage isPremium={isPremium} /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/radar\" \n              element={token ? <RadarPage /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/match\" \n              element={token ? <MatchPage /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/history\" \n              element={token ? <HistoryPage onLogout={handleLogout} /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/room/:roomId?\" \n              element={token ? <RoomPage onLogout={handleLogout} /> : <Navigate to=\"/auth\" />} \n            />\n            <Route \n              path=\"/premium\" \n              element={token ? <PremiumPage /> : <Navigate to=\"/auth\" />} \n            />\n          </Routes>\n        </AppLayout>\n      </BrowserRouter>\n      <Toaster position=\"top-center\" />\n    </div>\n  );\n}\n\nexport default App;
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
+
+function AppLayout({ children, onLogout, isPremium }) {
+  const location = useLocation();
+  const hideNavRoutes = ['/auth', '/premium', '/history', '/room'];
+  const showNav = !hideNavRoutes.some(route => location.pathname.startsWith(route));
+
+  return (
+    <>
+      {showNav && <MobileHeader isPremium={isPremium} onLogout={onLogout} />}
+      <main 
+        className={showNav ? 'mobile-main' : ''}
+        style={{
+          paddingTop: showNav ? 'calc(3.5rem + env(safe-area-inset-top))' : '0',
+          paddingBottom: showNav ? 'calc(4rem + env(safe-area-inset-bottom))' : '0',
+          minHeight: '100vh'
+        }}
+      >
+        {children}
+      </main>
+      {showNav && <MobileNav />}
+    </>
+  );
+}
+
+function App() {
+  const [token, setToken] = useState(localStorage.getItem('cogito_token'));
+  const [userId, setUserId] = useState(localStorage.getItem('cogito_user_id'));
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    if (token) {
+      checkPremiumStatus();
+    }
+    registerServiceWorker();
+  }, [token]);
+
+  const registerServiceWorker = () => {
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.log('SW registration failed:', err));
+      });
+    }
+  };
+
+  const checkPremiumStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/premium/check`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setIsPremium(response.data.is_premium);
+    } catch (error) {
+      console.error('Premium status check failed');
+    }
+  };
+
+  const handleLogin = (newToken, newUserId) => {
+    localStorage.setItem('cogito_token', newToken);
+    localStorage.setItem('cogito_user_id', newUserId);
+    setToken(newToken);
+    setUserId(newUserId);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('cogito_token');
+    localStorage.removeItem('cogito_user_id');
+    setToken(null);
+    setUserId(null);
+    setIsPremium(false);
+  };
+
+  return (
+    <div className=\"App\">
+      <BrowserRouter>
+        <AppLayout onLogout={handleLogout} isPremium={isPremium}>
+          <Routes>
+            <Route 
+              path=\"/auth\" 
+              element={!token ? <AuthPage onLogin={handleLogin} /> : <Navigate to=\"/\" />} 
+            />
+            <Route 
+              path=\"/\" 
+              element={token ? <CreatePage /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/live\" 
+              element={token ? <LivePage /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/insights\" 
+              element={token ? <InsightsPage isPremium={isPremium} /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/radar\" 
+              element={token ? <RadarPage /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/match\" 
+              element={token ? <MatchPage /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/history\" 
+              element={token ? <HistoryPage onLogout={handleLogout} /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/room/:roomId?\" 
+              element={token ? <RoomPage onLogout={handleLogout} /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/premium\" 
+              element={token ? <PremiumPage /> : <Navigate to=\"/auth\" />} 
+            />
+          </Routes>
+        </AppLayout>
+      </BrowserRouter>
+      <Toaster position=\"top-center\" />
+    </div>
+  );
+}
+
+export default App;
