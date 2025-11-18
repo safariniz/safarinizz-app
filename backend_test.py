@@ -481,46 +481,102 @@ class CogitoSyncV3APITester:
         return False
 
     def run_all_tests(self):
-        """Run all tests in sequence"""
-        print("🚀 Starting CogitoSync API Tests")
-        print("=" * 50)
+        """Run comprehensive CogitoSync V3.0 API tests"""
+        print("🚀 Starting CogitoSync V3.0 Comprehensive API Tests")
+        print("=" * 60)
+        print(f"🌐 Backend URL: {self.base_url}")
+        print("=" * 60)
 
-        # Test basic connectivity
+        # ========== CRITICAL TESTS ==========
+        print("\n🔥 CRITICAL TESTS - Authentication Flow")
         self.test_root_endpoint()
-
-        # Test authentication
+        
         if not self.test_register():
-            # If registration fails, try login
-            self.test_login()
+            print("❌ Registration failed - stopping critical tests")
+            return False
+            
+        self.test_login_invalid_credentials()
 
         if not self.token:
-            print("❌ Authentication failed - stopping tests")
+            print("❌ Authentication failed - stopping all tests")
             return False
 
-        # Test CSS functionality
-        self.test_create_css()
-        self.test_get_css_history()
-        self.test_get_css_by_id()
-
-        # Test room functionality
-        self.test_create_room()
-        self.test_join_room()
-        self.test_get_collective_css()
-        self.test_get_room_members()
-
-        # Test reflection
-        self.test_css_reflection()
-
-        # Print summary
-        print("\n" + "=" * 50)
-        print(f"📊 Test Summary: {self.tests_passed}/{self.tests_run} tests passed")
+        # ========== P0 TESTS ==========
+        print("\n⭐ P0 TESTS - Core Features")
         
-        if self.tests_passed == self.tests_run:
-            print("🎉 All tests passed!")
-            return True
+        # Profile Management
+        print("\n📋 Profile Management Tests:")
+        self.test_create_profile()
+        self.test_get_my_profile()
+        self.test_update_profile()
+        
+        # CSS Creation with AI
+        print("\n🎨 CSS Creation with AI Tests:")
+        self.test_create_css_with_ai()
+        self.test_get_css_history()
+        
+        # Social Features
+        print("\n👥 Social Features Tests:")
+        self.test_follow_user()
+        self.test_follow_self_error()
+        self.test_get_personalized_feed()
+        self.test_get_global_feed()
+        
+        # AI Coach
+        print("\n🤖 AI Coach Tests:")
+        self.test_start_coach_session()
+        self.test_coach_message()
+
+        # ========== P1 TESTS ==========
+        print("\n🏢 P1 TESTS - Community Features")
+        
+        # Community Rooms
+        print("\n🏠 Community Rooms Tests:")
+        self.test_list_rooms()
+        self.test_trending_rooms()
+        self.test_join_room()
+        self.test_leave_room()
+        
+        # Reactions System
+        print("\n💫 Reactions System Tests:")
+        self.test_react_to_css()
+        self.test_get_css_reactions()
+
+        # ========== P2 TESTS ==========
+        print("\n💎 P2 TESTS - Premium Features")
+        self.test_check_premium_status()
+        self.test_subscribe_premium()
+
+        # ========== SUMMARY ==========
+        self.print_test_summary()
+        
+        return self.tests_passed == self.tests_run
+
+    def print_test_summary(self):
+        """Print comprehensive test summary"""
+        print("\n" + "=" * 60)
+        print("📊 COGITOSYNC V3.0 TEST RESULTS")
+        print("=" * 60)
+        
+        success_rate = (self.tests_passed / self.tests_run * 100) if self.tests_run > 0 else 0
+        
+        print(f"✅ Tests Passed: {self.tests_passed}")
+        print(f"❌ Tests Failed: {self.tests_run - self.tests_passed}")
+        print(f"📈 Success Rate: {success_rate:.1f}%")
+        
+        if self.critical_failures:
+            print(f"\n🚨 CRITICAL FAILURES ({len(self.critical_failures)}):")
+            for failure in self.critical_failures:
+                print(f"   • {failure}")
+        
+        if success_rate == 100:
+            print("\n🎉 ALL TESTS PASSED! CogitoSync V3.0 backend is fully functional!")
+        elif success_rate >= 80:
+            print("\n✅ Most tests passed. Minor issues detected.")
         else:
-            print("⚠️  Some tests failed")
-            return False
+            print("\n⚠️  Significant issues detected. Backend needs attention.")
+        
+        print("=" * 60)
 
 def main():
     tester = CogitoSyncAPITester()
