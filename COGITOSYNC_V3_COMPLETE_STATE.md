@@ -336,7 +336,7 @@ JWT_EXPIRATION_HOURS=168
 
 **Frontend (.env):**
 ```
-REACT_APP_BACKEND_URL="https://cognitivehub-1.preview.emergentagent.com"
+REACT_APP_BACKEND_URL="https://vibemind-1.preview.emergentagent.com"
 REACT_APP_ENABLE_VISUAL_EDITS=false
 ENABLE_HEALTH_CHECK=false
 ```
@@ -351,7 +351,7 @@ ENABLE_HEALTH_CHECK=false
 - ✅ MongoDB: Active
 - ✅ OpenAI: API key configured
 
-**URL:** https://cognitivehub-1.preview.emergentagent.com
+**URL:** https://vibemind-1.preview.emergentagent.com
 
 **Current State:**
 - Backend fully deployed with v3 endpoints
