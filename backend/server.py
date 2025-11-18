@@ -357,13 +357,14 @@ async def coach_message(msg: CoachMessage, current_user: dict = Depends(get_curr
     messages.append({"role": "user", "content": msg.message})
     
     try:
-        response = openai.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[{"role": "system", "content": "You are an empathetic AI coach. Be supportive."}, *messages],
             temperature=0.7, max_tokens=150
         )
         reply = response.choices[0].message.content
-    except:
+    except Exception as e:
+        logging.error(f"Coach AI error: {e}")
         reply = "I'm having trouble connecting. Please try again."
     
     messages.append({"role": "assistant", "content": reply})
