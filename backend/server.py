@@ -358,7 +358,12 @@ async def generate_mood_forecast(css_history: List[dict]) -> dict:
             temperature=0.6
         )
         
-        forecast = json.loads(response.choices[0].message.content)
+        content = response.choices[0].message.content
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+        forecast = json.loads(content.strip())
         return forecast
     except Exception as e:
         logging.error(f"AI forecast error: {e}")
