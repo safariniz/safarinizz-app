@@ -276,7 +276,12 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
         )
         
         content = response.choices[0].message.content
-        css_data = json.loads(content)
+        # Clean markdown code blocks if present
+        if "```json" in content:
+            content = content.split("```json")[1].split("```")[0].strip()
+        elif "```" in content:
+            content = content.split("```")[1].split("```")[0].strip()
+        css_data = json.loads(content.strip())
         return css_data
     except Exception as e:
         logging.error(f"AI CSS generation error: {e}")
