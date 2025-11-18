@@ -123,6 +123,22 @@ function App() {
               element={token ? <MatchPage /> : <Navigate to=\"/auth\" />} 
             />
             <Route 
+              path=\"/profile\" 
+              element={token ? <ProfilePageV3 /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/feed\" 
+              element={token ? <FeedPageV3 /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/coach\" 
+              element={token ? <CoachChatPageV3 /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
+              path=\"/community-rooms\" 
+              element={token ? <CommunityRoomsPageV3 /> : <Navigate to=\"/auth\" />} 
+            />
+            <Route 
               path=\"/history\" 
               element={token ? <HistoryPage onLogout={handleLogout} /> : <Navigate to=\"/auth\" />} 
             />
