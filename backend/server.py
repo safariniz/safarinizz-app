@@ -1065,8 +1065,12 @@ async def v3_start_coach(current_user: dict = Depends(get_current_user)):
     })
     return {"session_id": session_id}
 
+class CoachMsg(BaseModel):
+    session_id: str
+    message: str
+
 @api_router.post("/v3/coach/message")
-async def v3_coach_message(session_id: str, message: str, current_user: dict = Depends(get_current_user)):
+async def v3_coach_message(msg: CoachMsg, current_user: dict = Depends(get_current_user)):
     session = await db.coach_sessions.find_one({"id": session_id})
     if not session or session['user_id'] != current_user['id']:
         raise HTTPException(404, "Session not found")
