@@ -462,6 +462,34 @@ def calculate_empathy_score(css1_list: List[dict], css2_list: List[dict]) -> flo
 async def root():
     return {"message": "CogitoSync AI - Production Platform v2.0"}
 
+@api_router.get("/health/openai")
+async def check_openai_health():
+    """Health check endpoint for OpenAI connectivity"""
+    try:
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            return {"status": "error", "message": "API key not configured"}
+        
+        # Quick test call
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": "test"}],
+            max_tokens=5,
+            timeout=10
+        )
+        
+        return {
+            "status": "healthy",
+            "model": "gpt-4o",
+            "message": "OpenAI API is accessible"
+        }
+    except openai.RateLimitError:
+        return {"status": "quota_exceeded", "message": "API quota limit reached"}
+    except openai.APIError as e:
+        return {"status": "api_error", "message": f"OpenAI API error: {str(e)}"}
+    except Exception as e:
+        return {"status": "error", "message": f"Connection failed: {str(e)}"}
+
 # --- AUTH ---
 
 @api_router.post("/auth/register", response_model=TokenResponse)
