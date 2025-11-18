@@ -1087,7 +1087,7 @@ async def v3_coach_message(msg: CoachMsg, current_user: dict = Depends(get_curre
     except:
         reply = "I'm having trouble connecting. Please try again."
     messages.append({"role": "assistant", "content": reply})
-    await db.coach_sessions.update_one({"id": session_id}, {"$set": {"messages": messages}})
+    await db.coach_sessions.update_one({"id": msg.session_id}, {"$set": {"messages": messages}})
     return {"reply": reply}
 
 # Rooms
