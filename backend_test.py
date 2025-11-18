@@ -228,72 +228,257 @@ class CogitoSyncV3APITester:
             return True
         return False
 
-    def test_get_css_by_id(self):
-        """Test getting CSS by ID"""
-        if hasattr(self, 'css_id'):
-            return self.run_test("Get CSS by ID", "GET", f"css/{self.css_id}", 200, auth_required=False)
-        else:
-            self.log_test("Get CSS by ID", False, "No CSS ID available")
-            return False
-
-    def test_create_room(self):
-        """Test room creation"""
-        success, response = self.run_test("Room Creation", "POST", "room/create", 200, data={})
+    # ========== SOCIAL FEATURES TESTS (P0) ==========
+    
+    def test_follow_user(self):
+        """Test following another user (simulate with dummy user ID)"""
+        dummy_user_id = str(uuid.uuid4())
+        success, response = self.run_test(
+            "Follow User",
+            "POST",
+            f"v3/social/follow/{dummy_user_id}",
+            200,
+            priority="P0"
+        )
         
-        if success and 'room_code' in response:
-            self.room_code = response['room_code']
-            self.room_id = response['id']
-            print(f"   Room Code: {self.room_code}")
+        if success:
+            print(f"   ✅ Successfully followed user: {dummy_user_id}")
+            return True
+        return False
+
+    def test_follow_self_error(self):
+        """Test that following yourself returns error"""
+        if self.user_id:
+            success, response = self.run_test(
+                "Follow Self (Should Fail)",
+                "POST",
+                f"v3/social/follow/{self.user_id}",
+                400,
+                priority="P0"
+            )
+            return success
+        return False
+
+    def test_get_personalized_feed(self):
+        """Test getting personalized social feed"""
+        success, response = self.run_test(
+            "Personalized Feed",
+            "GET",
+            "v3/social/feed",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'feed' in response:
+            print(f"   ✅ Retrieved {len(response['feed'])} feed items")
+            print(f"   ✅ Is personalized: {response.get('is_personalized', False)}")
+            return True
+        return False
+
+    def test_get_global_feed(self):
+        """Test getting global social feed"""
+        success, response = self.run_test(
+            "Global Feed",
+            "GET",
+            "v3/social/global-feed",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'feed' in response:
+            print(f"   ✅ Retrieved {len(response['feed'])} global feed items")
+            return True
+        return False
+
+    # ========== AI COACH TESTS (P0) ==========
+    
+    def test_start_coach_session(self):
+        """Test starting AI coach session"""
+        success, response = self.run_test(
+            "Start Coach Session",
+            "POST",
+            "v3/coach/start-session",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'session_id' in response:
+            self.session_id = response['session_id']
+            print(f"   ✅ Coach session started: {self.session_id}")
+            return True
+        return False
+
+    def test_coach_message(self):
+        """Test sending message to AI coach"""
+        if not self.session_id:
+            self.log_test("Coach Message", False, "No session ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Coach Message",
+            "POST",
+            "v3/coach/message",
+            200,
+            data={
+                "session_id": self.session_id,
+                "message": "I'm feeling overwhelmed with work today. Can you help me find some clarity?"
+            },
+            priority="P0"
+        )
+        
+        if success and 'reply' in response:
+            print(f"   ✅ AI Coach replied: {response['reply'][:100]}...")
+            return True
+        return False
+
+    # ========== COMMUNITY ROOMS TESTS (P1) ==========
+    
+    def test_list_rooms(self):
+        """Test listing community rooms"""
+        success, response = self.run_test(
+            "List Community Rooms",
+            "GET",
+            "v3/rooms/list",
+            200,
+            priority="P1"
+        )
+        
+        if success and 'rooms' in response:
+            print(f"   ✅ Retrieved {len(response['rooms'])} rooms")
+            if response['rooms']:
+                self.room_id = response['rooms'][0].get('id')
+                print(f"   ✅ First room ID: {self.room_id}")
+            return True
+        return False
+
+    def test_trending_rooms(self):
+        """Test getting trending rooms"""
+        success, response = self.run_test(
+            "Trending Rooms",
+            "GET",
+            "v3/rooms/trending",
+            200,
+            priority="P1"
+        )
+        
+        if success and 'rooms' in response:
+            print(f"   ✅ Retrieved {len(response['rooms'])} trending rooms")
             return True
         return False
 
     def test_join_room(self):
-        """Test joining a room"""
-        if hasattr(self, 'room_code') and hasattr(self, 'css_id'):
-            success, response = self.run_test(
-                "Join Room",
-                "POST",
-                "room/join",
-                200,
-                data={"room_code": self.room_code, "css_id": self.css_id}
-            )
-            return success
-        else:
-            self.log_test("Join Room", False, "No room code or CSS ID available")
+        """Test joining a community room"""
+        if not self.room_id:
+            self.log_test("Join Room", False, "No room ID available")
             return False
+            
+        success, response = self.run_test(
+            "Join Room",
+            "POST",
+            f"v3/rooms/{self.room_id}/join",
+            200,
+            priority="P1"
+        )
+        
+        if success:
+            print(f"   ✅ Successfully joined room: {self.room_id}")
+            return True
+        return False
 
-    def test_get_collective_css(self):
-        """Test getting collective CSS"""
-        if hasattr(self, 'room_id'):
-            return self.run_test("Collective CSS", "GET", f"room/{self.room_id}/collective-css", 200)
-        else:
-            self.log_test("Collective CSS", False, "No room ID available")
+    def test_leave_room(self):
+        """Test leaving a community room"""
+        if not self.room_id:
+            self.log_test("Leave Room", False, "No room ID available")
             return False
+            
+        success, response = self.run_test(
+            "Leave Room",
+            "POST",
+            f"v3/rooms/{self.room_id}/leave",
+            200,
+            priority="P1"
+        )
+        
+        if success:
+            print(f"   ✅ Successfully left room: {self.room_id}")
+            return True
+        return False
 
-    def test_get_room_members(self):
-        """Test getting room members"""
-        if hasattr(self, 'room_id'):
-            return self.run_test("Room Members", "GET", f"room/{self.room_id}/members", 200)
-        else:
-            self.log_test("Room Members", False, "No room ID available")
+    # ========== REACTIONS SYSTEM TESTS (P1) ==========
+    
+    def test_react_to_css(self):
+        """Test reacting to CSS"""
+        if not self.css_id:
+            self.log_test("React to CSS", False, "No CSS ID available")
             return False
+            
+        success, response = self.run_test(
+            "React to CSS",
+            "POST",
+            "v3/css/react",
+            200,
+            data={
+                "css_id": self.css_id,
+                "reaction_type": "wave"
+            },
+            priority="P1"
+        )
+        
+        if success:
+            print(f"   ✅ Successfully reacted to CSS: {self.css_id}")
+            return True
+        return False
 
-    def test_css_reflection(self):
-        """Test CSS reflection analysis"""
-        if hasattr(self, 'css_id'):
-            success, response = self.run_test(
-                "CSS Reflection",
-                "POST",
-                "reflection/analyze",
-                200,
-                data={"css_id": self.css_id}
-            )
-            if success and 'reflection' in response:
-                print(f"   Reflection: {response['reflection'][:100]}...")
-            return success
-        else:
-            self.log_test("CSS Reflection", False, "No CSS ID available")
+    def test_get_css_reactions(self):
+        """Test getting reactions for CSS"""
+        if not self.css_id:
+            self.log_test("Get CSS Reactions", False, "No CSS ID available")
             return False
+            
+        success, response = self.run_test(
+            "Get CSS Reactions",
+            "GET",
+            f"v3/css/{self.css_id}/reactions",
+            200,
+            priority="P1"
+        )
+        
+        if success and 'reactions' in response:
+            print(f"   ✅ Retrieved {response.get('count', 0)} reactions")
+            return True
+        return False
+
+    # ========== PREMIUM FEATURES TESTS (P2) ==========
+    
+    def test_check_premium_status(self):
+        """Test checking premium status"""
+        success, response = self.run_test(
+            "Check Premium Status",
+            "GET",
+            "v3/premium/check",
+            200,
+            priority="P2"
+        )
+        
+        if success and 'is_premium' in response:
+            print(f"   ✅ Premium status: {response['is_premium']}")
+            return True
+        return False
+
+    def test_subscribe_premium(self):
+        """Test premium subscription"""
+        success, response = self.run_test(
+            "Subscribe Premium",
+            "POST",
+            "v3/premium/subscribe",
+            200,
+            priority="P2"
+        )
+        
+        if success:
+            print(f"   ✅ Premium subscription activated")
+            return True
+        return False
 
     def run_all_tests(self):
         """Run all tests in sequence"""
