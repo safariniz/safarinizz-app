@@ -988,48 +988,133 @@ async def websocket_live_css(websocket: WebSocket, room_id: str = "global"):
 # Include routers
 app.include_router(api_router)
 
-# Import and include v3 routes
-import sys
-sys.path.append(str(ROOT_DIR))
-from routes_v3 import v3_router
+# V3 routes integrated directly - avoiding complex dependency injection issues
+# Profile endpoints
+@api_router.post("/v3/profile/create")
+async def v3_create_profile(vibe_identity: str, current_user: dict = Depends(get_current_user)):
+    import random, string
+    existing = await db.anonymous_profiles.find_one({"user_id": current_user['id']})
+    if existing:
+        raise HTTPException(400, "Profile exists")
+    handle = f"vibe-{''.join(random.choices(string.digits, k=4))}"
+    while await db.anonymous_profiles.find_one({"handle": handle}):
+        handle = f"vibe-{''.join(random.choices(string.digits, k=4))}"
+    profile = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "handle": handle,
+        "vibe_identity": vibe_identity,
+        "followers_count": 0,
+        "following_count": 0,
+        "css_count": 0,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    }
+    await db.anonymous_profiles.insert_one(profile)
+    return {"profile": profile}
 
-# Dependency injection for v3 routes
-from fastapi import Request
+@api_router.get("/v3/profile/me")
+async def v3_get_my_profile(current_user: dict = Depends(get_current_user)):
+    profile = await db.anonymous_profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
+    if not profile:
+        raise HTTPException(404, "Profile not found")
+    return profile
 
-@app.middleware("http")
-async def add_db_to_request(request: Request, call_next):
-    request.state.db = db
-    response = await call_next(request)
-    return response
+# Social endpoints
+@api_router.post("/v3/social/follow/{target_user_id}")
+async def v3_follow(target_user_id: str, current_user: dict = Depends(get_current_user)):
+    if target_user_id == current_user['id']:
+        raise HTTPException(400, "Cannot follow yourself")
+    existing = await db.social_graph.find_one({"follower_id": current_user['id'], "following_id": target_user_id})
+    if existing:
+        raise HTTPException(400, "Already following")
+    await db.social_graph.insert_one({
+        "id": str(uuid.uuid4()),
+        "follower_id": current_user['id'],
+        "following_id": target_user_id,
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    await db.anonymous_profiles.update_one({"user_id": current_user['id']}, {"$inc": {"following_count": 1}})
+    await db.anonymous_profiles.update_one({"user_id": target_user_id}, {"$inc": {"followers_count": 1}})
+    return {"message": "Followed"}
 
-def get_db_from_request(request: Request):
-    return request.state.db
+@api_router.get("/v3/social/feed")
+async def v3_get_feed(current_user: dict = Depends(get_current_user)):
+    following = await db.social_graph.find({"follower_id": current_user['id']}, {"following_id": 1}).to_list(100)
+    following_ids = [f['following_id'] for f in following]
+    if not following_ids:
+        feed = await db.css_snapshots.find({}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
+    else:
+        feed = await db.css_snapshots.find({"user_id": {"$in": following_ids}}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
+    for item in feed:
+        profile = await db.anonymous_profiles.find_one({"user_id": item['user_id']}, {"_id": 0, "handle": 1, "vibe_identity": 1})
+        item['profile'] = profile if profile else {}
+    return {"feed": feed}
 
-def get_current_user_v3(credentials: HTTPAuthorizationCredentials = Depends(security)):
-    token = credentials.credentials
+# AI Coach
+@api_router.post("/v3/coach/start-session")
+async def v3_start_coach(current_user: dict = Depends(get_current_user)):
+    session_id = str(uuid.uuid4())
+    await db.coach_sessions.insert_one({
+        "id": session_id,
+        "user_id": current_user['id'],
+        "messages": [],
+        "created_at": datetime.now(timezone.utc).isoformat()
+    })
+    return {"session_id": session_id}
+
+@api_router.post("/v3/coach/message")
+async def v3_coach_message(session_id: str, message: str, current_user: dict = Depends(get_current_user)):
+    session = await db.coach_sessions.find_one({"id": session_id})
+    if not session or session['user_id'] != current_user['id']:
+        raise HTTPException(404, "Session not found")
+    messages = session.get('messages', [])
+    messages.append({"role": "user", "content": message})
     try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id: str = payload.get("user_id")
-        if user_id is None:
-            raise HTTPException(status_code=401, detail="Invalid authentication")
-        return {"id": user_id}
+        response = openai.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "system", "content": "You are an empathetic AI coach. Be supportive and concise."}, *messages],
+            temperature=0.7,
+            max_tokens=150
+        )
+        reply = response.choices[0].message.content
     except:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        reply = "I'm having trouble connecting. Please try again."
+    messages.append({"role": "assistant", "content": reply})
+    await db.coach_sessions.update_one({"id": session_id}, {"$set": {"messages": messages}})
+    return {"reply": reply}
 
-# Update v3 router dependencies
-from functools import wraps
+# Rooms
+@api_router.get("/v3/rooms/list")
+async def v3_list_rooms(category: str = None):
+    query = {"category": category} if category else {}
+    rooms = await db.community_rooms.find(query, {"_id": 0}).to_list(100)
+    return {"rooms": rooms}
 
-def inject_dependencies(func):
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        if 'db' not in kwargs:
-            kwargs['db'] = db
-        if 'current_user' not in kwargs and 'Depends' in str(func.__annotations__):
-            kwargs['current_user'] = await get_current_user(Depends(security))
-        return await func(*args, **kwargs)
-    return wrapper
+@api_router.get("/v3/rooms/trending")
+async def v3_trending_rooms():
+    rooms = await db.community_rooms.find({"is_trending": True}, {"_id": 0}).sort("member_count", -1).limit(10).to_list(10)
+    return {"rooms": rooms}
 
-app.include_router(v3_router, prefix="/api", dependencies=[Depends(get_current_user)])
+@api_router.post("/v3/rooms/{room_id}/join")
+async def v3_join_room(room_id: str, current_user: dict = Depends(get_current_user)):
+    existing = await db.room_memberships.find_one({"user_id": current_user['id'], "room_id": room_id})
+    if existing:
+        return {"message": "Already member"}
+    await db.room_memberships.insert_one({
+        "id": str(uuid.uuid4()),
+        "user_id": current_user['id'],
+        "room_id": room_id,
+        "joined_at": datetime.now(timezone.utc).isoformat()
+    })
+    await db.community_rooms.update_one({"id": room_id}, {"$inc": {"member_count": 1}})
+    return {"message": "Joined"}
+
+@api_router.post("/v3/rooms/{room_id}/leave")
+async def v3_leave_room(room_id: str, current_user: dict = Depends(get_current_user)):
+    result = await db.room_memberships.delete_one({"user_id": current_user['id'], "room_id": room_id})
+    if result.deleted_count > 0:
+        await db.community_rooms.update_one({"id": room_id}, {"$inc": {"member_count": -1}})
+    return {"message": "Left"}
 
 app.add_middleware(
     CORSMiddleware,
