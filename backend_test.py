@@ -34,7 +34,7 @@ class CogitoSyncV3APITester:
             "details": details
         })
 
-    def run_test(self, name, method, endpoint, expected_status, data=None, auth_required=True):
+    def run_test(self, name, method, endpoint, expected_status, data=None, auth_required=True, priority="P1"):
         """Run a single API test"""
         url = f"{self.base_url}/{endpoint}"
         headers = {'Content-Type': 'application/json'}
@@ -44,6 +44,8 @@ class CogitoSyncV3APITester:
 
         print(f"\n🔍 Testing {name}...")
         print(f"   URL: {url}")
+        if data:
+            print(f"   Data: {json.dumps(data, indent=2)}")
         
         try:
             if method == 'GET':
@@ -62,6 +64,7 @@ class CogitoSyncV3APITester:
             if success:
                 try:
                     response_data = response.json()
+                    print(f"   Response: {json.dumps(response_data, indent=2)[:200]}...")
                     self.log_test(name, True)
                     return True, response_data
                 except:
@@ -70,13 +73,22 @@ class CogitoSyncV3APITester:
             else:
                 try:
                     error_data = response.json()
-                    self.log_test(name, False, f"Status {response.status_code}: {error_data}")
+                    error_msg = f"Status {response.status_code}: {error_data}"
+                    if priority in ["CRITICAL", "P0"]:
+                        self.critical_failures.append(f"{name}: {error_msg}")
+                    self.log_test(name, False, error_msg)
                 except:
-                    self.log_test(name, False, f"Status {response.status_code}: {response.text}")
+                    error_msg = f"Status {response.status_code}: {response.text}"
+                    if priority in ["CRITICAL", "P0"]:
+                        self.critical_failures.append(f"{name}: {error_msg}")
+                    self.log_test(name, False, error_msg)
                 return False, {}
 
         except Exception as e:
-            self.log_test(name, False, f"Exception: {str(e)}")
+            error_msg = f"Exception: {str(e)}"
+            if priority in ["CRITICAL", "P0"]:
+                self.critical_failures.append(f"{name}: {error_msg}")
+            self.log_test(name, False, error_msg)
             return False, {}
 
     def test_root_endpoint(self):
