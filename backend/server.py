@@ -1071,11 +1071,11 @@ class CoachMsg(BaseModel):
 
 @api_router.post("/v3/coach/message")
 async def v3_coach_message(msg: CoachMsg, current_user: dict = Depends(get_current_user)):
-    session = await db.coach_sessions.find_one({"id": session_id})
+    session = await db.coach_sessions.find_one({"id": msg.session_id})
     if not session or session['user_id'] != current_user['id']:
         raise HTTPException(404, "Session not found")
     messages = session.get('messages', [])
-    messages.append({"role": "user", "content": message})
+    messages.append({"role": "user", "content": msg.message})
     try:
         response = openai.chat.completions.create(
             model="gpt-4o",
