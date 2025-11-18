@@ -275,7 +275,7 @@ async def get_my_history(current_user: dict = Depends(get_current_user)):
 # V3 Profile
 @api_router.post("/v3/profile/create")
 async def create_profile(profile_data: ProfileCreate, current_user: dict = Depends(get_current_user)):
-    existing = await db.profiles.find_one({"user_id": current_user['id']})
+    existing = await db.profiles.find_one({"user_id": current_user['id']}, {"_id": 0})
     if existing:
         raise HTTPException(400, "Profile exists")
     
@@ -283,14 +283,18 @@ async def create_profile(profile_data: ProfileCreate, current_user: dict = Depen
     while await db.profiles.find_one({"handle": handle}):
         handle = generate_handle()
     
+    profile_id = str(uuid.uuid4())
     profile = {
-        "id": str(uuid.uuid4()), "user_id": current_user['id'], "handle": handle,
+        "id": profile_id, "user_id": current_user['id'], "handle": handle,
         "vibe_identity": profile_data.vibe_identity, "bio": profile_data.bio or "",
         "avatar_url": None, "followers_count": 0, "following_count": 0, "css_count": 0,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     await db.profiles.insert_one(profile)
-    return profile
+    
+    # Return profile without MongoDB's _id field
+    created_profile = await db.profiles.find_one({"id": profile_id}, {"_id": 0})
+    return created_profile
 
 @api_router.get("/v3/profile/me")
 async def get_my_profile(current_user: dict = Depends(get_current_user)):
