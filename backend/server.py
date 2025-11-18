@@ -465,4 +465,4 @@ async def create_indexes():
 
 @app.on_event("shutdown")
 async def shutdown():
-    client.close()
+    mongo_client.close()
