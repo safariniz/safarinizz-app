@@ -645,17 +645,20 @@ async def generate_avatar(current_user: dict = Depends(get_current_user)):
     if len(css_history) < 5:
         raise HTTPException(status_code=400, detail="Need at least 5 CSS snapshots to generate avatar")
     
-    avatar_url = await generate_avatar_with_ai(css_history)
+    avatar_result = await generate_avatar_with_ai(css_history)
+    
+    if avatar_result["error"]:
+        raise HTTPException(status_code=503, detail=avatar_result.get("message", "Avatar generation failed"))
     
     await db.user_profiles.update_one(
         {"user_id": current_user['id']},
         {"$set": {
-            "avatar_url": avatar_url,
+            "avatar_url": avatar_result["url"],
             "avatar_generated_at": datetime.now(timezone.utc).isoformat()
         }}
     )
     
-    return {"avatar_url": avatar_url}
+    return {"avatar_url": avatar_result["url"]}
 
 @api_router.get("/avatar/my")
 async def get_my_avatar(current_user: dict = Depends(get_current_user)):
