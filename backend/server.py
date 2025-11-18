@@ -1006,7 +1006,7 @@ async def v3_create_profile(choice: VibeChoice, current_user: dict = Depends(get
         "id": str(uuid.uuid4()),
         "user_id": current_user['id'],
         "handle": handle,
-        "vibe_identity": vibe_identity,
+        "vibe_identity": choice.vibe_identity,
         "followers_count": 0,
         "following_count": 0,
         "css_count": 0,
