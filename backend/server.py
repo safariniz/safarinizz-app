@@ -990,8 +990,11 @@ app.include_router(api_router)
 
 # V3 routes integrated directly - avoiding complex dependency injection issues
 # Profile endpoints
+class VibeChoice(BaseModel):
+    vibe_identity: str
+
 @api_router.post("/v3/profile/create")
-async def v3_create_profile(vibe_identity: str, current_user: dict = Depends(get_current_user)):
+async def v3_create_profile(choice: VibeChoice, current_user: dict = Depends(get_current_user)):
     import random, string
     existing = await db.anonymous_profiles.find_one({"user_id": current_user['id']})
     if existing:
