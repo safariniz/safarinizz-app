@@ -985,8 +985,51 @@ async def websocket_live_css(websocket: WebSocket, room_id: str = "global"):
     except WebSocketDisconnect:
         manager.disconnect(websocket, room_id)
 
-# Include router
+# Include routers
 app.include_router(api_router)
+
+# Import and include v3 routes
+import sys
+sys.path.append(str(ROOT_DIR))
+from routes_v3 import v3_router
+
+# Dependency injection for v3 routes
+from fastapi import Request
+
+@app.middleware("http")
+async def add_db_to_request(request: Request, call_next):
+    request.state.db = db
+    response = await call_next(request)
+    return response
+
+def get_db_from_request(request: Request):
+    return request.state.db
+
+def get_current_user_v3(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id: str = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid authentication")
+        return {"id": user_id}
+    except:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+# Update v3 router dependencies
+from functools import wraps
+
+def inject_dependencies(func):
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if 'db' not in kwargs:
+            kwargs['db'] = db
+        if 'current_user' not in kwargs and 'Depends' in str(func.__annotations__):
+            kwargs['current_user'] = await get_current_user(Depends(security))
+        return await func(*args, **kwargs)
+    return wrapper
+
+app.include_router(v3_router, prefix="/api", dependencies=[Depends(get_current_user)])
 
 app.add_middleware(
     CORSMiddleware,
