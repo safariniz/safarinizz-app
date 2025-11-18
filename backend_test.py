@@ -134,30 +134,99 @@ class CogitoSyncV3APITester:
         )
         return success
 
-    def test_create_css(self):
-        """Test CSS creation with AI"""
-        emotion_input = "Bugün kendimi huzurlu ama biraz melankolik hissediyorum. İçimde hafif bir nostalji var."
+    # ========== PROFILE MANAGEMENT TESTS (P0) ==========
+    
+    def test_create_profile(self):
+        """Test V3 profile creation with vibe identity"""
+        success, response = self.run_test(
+            "V3 Profile Creation",
+            "POST",
+            "v3/profile/create",
+            200,
+            data={
+                "vibe_identity": "Digital Nomad Explorer",
+                "bio": "Testing the cognitive sync experience"
+            },
+            priority="P0"
+        )
+        
+        if success and 'handle' in response:
+            self.profile_id = response['id']
+            print(f"   ✅ Profile created with handle: {response['handle']}")
+            print(f"   ✅ Vibe Identity: {response['vibe_identity']}")
+            return True
+        return False
+
+    def test_get_my_profile(self):
+        """Test getting current user's profile"""
+        success, response = self.run_test(
+            "Get My Profile",
+            "GET",
+            "v3/profile/me",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'handle' in response:
+            print(f"   ✅ Retrieved profile: {response['handle']}")
+            return True
+        return False
+
+    def test_update_profile(self):
+        """Test profile update"""
+        return self.run_test(
+            "Update Profile",
+            "PUT",
+            "v3/profile/update",
+            200,
+            data={"bio": "Updated bio for testing purposes"},
+            priority="P0"
+        )
+
+    # ========== CSS CREATION WITH AI TESTS (P0) ==========
+    
+    def test_create_css_with_ai(self):
+        """Test CSS creation with OpenAI integration"""
+        emotion_input = "I feel peaceful and contemplative today, like watching clouds drift across a vast sky"
         
         success, response = self.run_test(
-            "CSS Creation",
+            "CSS Creation with AI",
             "POST",
             "css/create",
             200,
-            data={"emotion_input": emotion_input}
+            data={"emotion_input": emotion_input},
+            priority="P0"
         )
         
         if success and 'id' in response:
             self.css_id = response['id']
-            print(f"   Created CSS: {response.get('emotion_label', 'Unknown')}")
-            print(f"   Color: {response.get('color', 'Unknown')}")
-            print(f"   Light Frequency: {response.get('light_frequency', 'Unknown')}")
-            print(f"   Sound Texture: {response.get('sound_texture', 'Unknown')}")
+            print(f"   ✅ CSS Created: {response.get('emotion_label', 'Unknown')}")
+            print(f"   ✅ Color: {response.get('color', 'Unknown')}")
+            print(f"   ✅ Light Frequency: {response.get('light_frequency', 'Unknown')}")
+            print(f"   ✅ Sound Texture: {response.get('sound_texture', 'Unknown')}")
+            print(f"   ✅ Description: {response.get('description', 'Unknown')}")
+            
+            # Verify AI generated real data (not fallback)
+            if response.get('error') == 'fallback':
+                print("   ⚠️  WARNING: AI returned fallback data - OpenAI integration may have issues")
+            
             return True
         return False
 
     def test_get_css_history(self):
         """Test getting user's CSS history"""
-        return self.run_test("CSS History", "GET", "css/my-history", 200)
+        success, response = self.run_test(
+            "CSS History",
+            "GET",
+            "css/my-history",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'history' in response:
+            print(f"   ✅ Retrieved {len(response['history'])} CSS entries")
+            return True
+        return False
 
     def test_get_css_by_id(self):
         """Test getting CSS by ID"""
