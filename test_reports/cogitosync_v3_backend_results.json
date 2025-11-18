@@ -1,0 +1,124 @@
+{
+  "timestamp": "2025-11-18T16:32:40.131297",
+  "version": "3.0.0",
+  "backend_url": "https://vibemind-1.preview.emergentagent.com/api",
+  "total_tests": 22,
+  "passed_tests": 21,
+  "failed_tests": 1,
+  "success_rate": 95.45454545454545,
+  "critical_failures": [
+    "V3 Profile Creation: Status 500: Internal Server Error"
+  ],
+  "detailed_results": [
+    {
+      "test": "Root Endpoint",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "User Registration",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Login Invalid Credentials",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "V3 Profile Creation",
+      "success": false,
+      "details": "Status 500: Internal Server Error"
+    },
+    {
+      "test": "Get My Profile",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Update Profile",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "CSS Creation with AI",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "CSS History",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Follow User",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Follow Self (Should Fail)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Personalized Feed",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Global Feed",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Start Coach Session",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Coach Message",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Community Rooms",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Trending Rooms",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Join Room",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Leave Room",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "React to CSS",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Get CSS Reactions",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Check Premium Status",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Subscribe Premium",
+      "success": true,
+      "details": ""
+    }
+  ]
+}
