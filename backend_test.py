@@ -91,14 +91,17 @@ class CogitoSyncV3APITester:
             self.log_test(name, False, error_msg)
             return False, {}
 
+    # ========== AUTHENTICATION TESTS (CRITICAL) ==========
+    
     def test_root_endpoint(self):
         """Test root API endpoint"""
-        return self.run_test("Root Endpoint", "GET", "", 200, auth_required=False)
+        return self.run_test("Root Endpoint", "GET", "", 200, auth_required=False, priority="CRITICAL")
 
     def test_register(self):
         """Test user registration"""
-        test_email = f"test_{datetime.now().strftime('%H%M%S')}@gmail.com"
-        test_password = "TestPass123!"
+        timestamp = datetime.now().strftime('%H%M%S')
+        test_email = f"cogito_test_{timestamp}@example.com"
+        test_password = "SecurePass123!"
         
         success, response = self.run_test(
             "User Registration",
@@ -106,36 +109,30 @@ class CogitoSyncV3APITester:
             "auth/register",
             200,
             data={"email": test_email, "password": test_password},
-            auth_required=False
+            auth_required=False,
+            priority="CRITICAL"
         )
         
         if success and 'access_token' in response:
             self.token = response['access_token']
             self.user_id = response['user_id']
-            print(f"   Registered user: {test_email}")
+            print(f"   ✅ Registered user: {test_email}")
+            print(f"   ✅ JWT Token received: {self.token[:20]}...")
             return True
         return False
 
-    def test_login(self):
-        """Test user login with existing credentials"""
-        # Try to login with a test account
-        test_email = "test@gmail.com"
-        test_password = "TestPass123!"
-        
+    def test_login_invalid_credentials(self):
+        """Test login with invalid credentials"""
         success, response = self.run_test(
-            "User Login",
+            "Login Invalid Credentials",
             "POST",
             "auth/login",
-            200,
-            data={"email": test_email, "password": test_password},
-            auth_required=False
+            401,
+            data={"email": "invalid@test.com", "password": "wrongpass"},
+            auth_required=False,
+            priority="CRITICAL"
         )
-        
-        if success and 'access_token' in response:
-            self.token = response['access_token']
-            self.user_id = response['user_id']
-            return True
-        return False
+        return success
 
     def test_create_css(self):
         """Test CSS creation with AI"""
