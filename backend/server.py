@@ -319,10 +319,13 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
             "error": "fallback"
         }
 
-async def generate_avatar_with_ai(css_history: List[dict]) -> str:
-    """Generate unique avatar based on CSS patterns"""
+async def generate_avatar_with_ai(css_history: List[dict]) -> dict:
+    """Generate unique avatar based on CSS patterns with error handling"""
     try:
-        # Analyze pattern
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            return {"url": None, "error": "API key not configured"}
+        
         dominant_colors = [c['color'] for c in css_history[:10]]
         avg_freq = sum([c['light_frequency'] for c in css_history[:10]]) / len(css_history[:10])
         
@@ -333,13 +336,17 @@ async def generate_avatar_with_ai(css_history: List[dict]) -> str:
             prompt=prompt,
             size="1024x1024",
             quality="standard",
-            n=1
+            n=1,
+            timeout=60
         )
         
-        return response.data[0].url
+        return {"url": response.data[0].url, "error": None}
+    except openai.RateLimitError as e:
+        logging.error(f"Avatar generation quota exceeded: {e}")
+        return {"url": None, "error": "quota_exceeded", "message": "OpenAI kotası doldu"}
     except Exception as e:
         logging.error(f"AI avatar generation error: {e}")
-        return None
+        return {"url": None, "error": "generation_failed", "message": str(e)}
 
 async def generate_ai_insights(css_history: List[dict]) -> str:
     """Generate AI coach insights"""
