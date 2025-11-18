@@ -164,10 +164,21 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
         if not api_key:
             raise ValueError("API key not configured")
         
+        system_prompt = """Generate a JSON object representing an emotional cognitive state snapshot.
+Return ONLY valid JSON with these exact fields:
+{
+  "color": "#RRGGBB hex color",
+  "light_frequency": number between 0.0 and 1.0,
+  "sound_texture": "descriptive word like flowing/sharp/warm",
+  "emotion_label": "short emotion label",
+  "description": "brief poetic description"
+}
+All values must be properly typed. light_frequency must be a number (float), not a string."""
+
         response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
-                {"role": "system", "content": "Generate emotional CSS as JSON: {color, light_frequency, sound_texture, emotion_label, description}"},
+                {"role": "system", "content": system_prompt},
                 {"role": "user", "content": f"Emotion: {emotion_input}"}
             ],
             temperature=0.8,
@@ -179,7 +190,14 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
             content = content.split("```json")[1].split("```")[0].strip()
         elif "```" in content:
             content = content.split("```")[1].split("```")[0].strip()
-        return json.loads(content.strip())
+        
+        result = json.loads(content.strip())
+        
+        # Validate and fix types
+        if isinstance(result.get('light_frequency'), str):
+            result['light_frequency'] = 0.5
+        
+        return result
     except Exception as e:
         logging.error(f"AI CSS error: {e}")
         return {
