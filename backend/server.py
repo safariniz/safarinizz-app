@@ -258,8 +258,12 @@ def hash_location(lat: float, lon: float, precision: int = 3) -> str:
 # =============== AI FUNCTIONS ===============
 
 async def generate_css_with_ai(emotion_input: str) -> dict:
-    """Generate CSS using OpenAI GPT-4o"""
+    """Generate CSS using OpenAI GPT-4o with robust error handling"""
     try:
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("OpenAI API key not configured")
+        
         response = openai.chat.completions.create(
             model="gpt-4o",
             messages=[
@@ -272,7 +276,8 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
                     "content": f"Ruh halim: {emotion_input}"
                 }
             ],
-            temperature=0.8
+            temperature=0.8,
+            timeout=30
         )
         
         content = response.choices[0].message.content
@@ -283,6 +288,26 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
             content = content.split("```")[1].split("```")[0].strip()
         css_data = json.loads(content.strip())
         return css_data
+    except openai.RateLimitError as e:
+        logging.error(f"OpenAI quota exceeded: {e}")
+        return {
+            "color": "#FFA07A",
+            "light_frequency": 0.4,
+            "sound_texture": "smooth",
+            "emotion_label": "AI Kapasitesi Aşıldı",
+            "description": "OpenAI kotası doldu. Lütfen biraz bekleyin veya yöneticiyle iletişime geçin.",
+            "error": "quota_exceeded"
+        }
+    except openai.APIError as e:
+        logging.error(f"OpenAI API error: {e}")
+        return {
+            "color": "#FFB6C1",
+            "light_frequency": 0.3,
+            "sound_texture": "smooth",
+            "emotion_label": "Geçici Sorun",
+            "description": "AI servisi şu anda yanıt vermiyor. Tekrar deneyin.",
+            "error": "api_error"
+        }
     except Exception as e:
         logging.error(f"AI CSS generation error: {e}")
         return {
@@ -290,7 +315,8 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
             "light_frequency": 0.5,
             "sound_texture": "flowing",
             "emotion_label": "Belirsiz Dalga",
-            "description": "İçsel bir titreşim, henüz şekillenmemiş."
+            "description": "İçsel bir titreşim, henüz şekillenmemiş.",
+            "error": "fallback"
         }
 
 async def generate_avatar_with_ai(css_history: List[dict]) -> str:
