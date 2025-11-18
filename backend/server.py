@@ -164,7 +164,7 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
         if not api_key:
             raise ValueError("API key not configured")
         
-        response = openai.chat.completions.create(
+        response = openai_client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {"role": "system", "content": "Generate emotional CSS as JSON: {color, light_frequency, sound_texture, emotion_label, description}"},
