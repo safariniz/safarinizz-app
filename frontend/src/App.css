@@ -199,6 +199,212 @@ button:active {
   animation: pulse 3s ease-in-out infinite;
 }
 
+/* ========================================
+   Micro-Animations & Transitions
+   ======================================== */
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in {
+  animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Hover effects */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark .hover-lift:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+}
+
+/* Gradient text */
+.gradient-text {
+  background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #22C6A8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #22C6A8 100%);
+}
+
+/* Soft neon glow effects */
+.neon-glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+}
+
+.neon-glow-teal {
+  box-shadow: 0 0 20px rgba(34, 198, 168, 0.4);
+}
+
+.neon-glow-amber {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4);
+}
+
+/* CSS Orb enhanced */
+.css-orb-enhanced {
+  position: relative;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.1),
+    inset 0 0 20px rgba(255, 255, 255, 0.2);
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 
+      0 0 40px rgba(0, 0, 0, 0.1),
+      inset 0 0 20px rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 
+      0 0 60px rgba(0, 0, 0, 0.2),
+      inset 0 0 30px rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* Card hover effects */
+.card-interactive {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+.dark .card-interactive:hover {
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+/* Skeleton loading */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(200, 200, 200, 0.2) 25%,
+    rgba(200, 200, 200, 0.3) 50%,
+    rgba(200, 200, 200, 0.2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(50, 50, 50, 0.2) 25%,
+    rgba(50, 50, 50, 0.3) 50%,
+    rgba(50, 50, 50, 0.2) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-tertiary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary-dark);
+}
+
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
