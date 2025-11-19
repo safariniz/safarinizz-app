@@ -53,12 +53,12 @@
 
 /* Dark Mode Variables */
 .dark {
-  --color-bg: #0F172A;
-  --color-bg-secondary: #1E293B;
-  --color-bg-tertiary: #334155;
-  --color-text: #F1F5F9;
-  --color-text-secondary: #94A3B8;
-  --color-border: #334155;
+  --color-bg: #0F0B25;
+  --color-bg-secondary: #1A1337;
+  --color-bg-tertiary: #2D2451;
+  --color-text: #F4F1FA;
+  --color-text-secondary: #A78BFA;
+  --color-border: #2D2451;
 }
 
 * {
