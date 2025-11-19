@@ -28,7 +28,7 @@ export default function MobileHeaderV3({ isPremium, onLogout }) {
         <div className="flex items-center gap-2">
           <Logo size="sm" showText={false} />
           <span className="text-lg font-bold" style={{
-            background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)',
+            background: 'linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent'
           }}>
