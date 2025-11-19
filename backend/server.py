@@ -594,7 +594,7 @@ async def ai_coach_insights(current_user: dict = Depends(get_current_user)):
         css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(30).to_list(30)
         
         if not css_list:
-            return {"insights": [], "message": "Create more CSS to get insights"}
+            return {"insights": [], "message": "İçgörüler için daha fazla CSS oluştur"}
         
         # Analyze patterns
         emotions = [c.get('emotion_label', '') for c in css_list]
