@@ -50,7 +50,7 @@ export default function MobileHeaderV3({ isPremium, onLogout }) {
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={() => navigate('/settings')}>
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                Ayarlar
               </DropdownMenuItem>
               {!isPremium && (
                 <DropdownMenuItem onClick={() => navigate('/premium')}>
