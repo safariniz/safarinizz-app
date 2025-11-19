@@ -5,27 +5,27 @@
    ======================================== */
 
 :root {
-  /* Primary Colors - Purple-Blue Gradient */
-  --color-primary: #6366F1;
-  --color-primary-dark: #4F46E5;
-  --color-primary-light: #818CF8;
+  /* Primary Colors - Mistik Mor */
+  --color-primary: #7C3AED;
+  --color-primary-dark: #6D28D9;
+  --color-primary-light: #A78BFA;
   
-  /* Secondary Colors - Teal Accent */
-  --color-secondary: #22C6A8;
-  --color-secondary-dark: #10B981;
-  --color-secondary-light: #6EE7B7;
+  /* Secondary Colors - Derin İndigo */
+  --color-secondary: #4F46E5;
+  --color-secondary-dark: #4338CA;
+  --color-secondary-light: #818CF8;
   
-  /* Accent - Soft Purple */
-  --color-accent: #A855F7;
-  --color-accent-light: #C084FC;
+  /* Accent - Teal */
+  --color-accent: #06B6D4;
+  --color-accent-light: #22D3EE;
   
   /* Neutrals - Light Mode */
-  --color-bg: #F9FAFB;
+  --color-bg: #F4F1FA;
   --color-bg-secondary: #FFFFFF;
-  --color-bg-tertiary: #F3F4F6;
-  --color-text: #111827;
-  --color-text-secondary: #6B7280;
-  --color-border: #E5E7EB;
+  --color-bg-tertiary: #EDE9F5;
+  --color-text: #1F1632;
+  --color-text-secondary: #64748B;
+  --color-border: #E2D9F3;
   
   /* Status Colors */
   --color-success: #10B981;
