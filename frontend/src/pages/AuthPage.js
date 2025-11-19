@@ -59,10 +59,21 @@ export default function AuthPage({ onLogin }) {
       </div>
 
       <Card className="w-full max-w-md glass border-none shadow-2xl relative z-10" data-testid="auth-card">
-        <CardHeader className="text-center">
-          <CardTitle className="text-4xl font-bold gradient-text mb-2">CogitoSync</CardTitle>
-          <CardDescription className="text-base text-gray-600">
-            Duygusal Senkronizasyon Platformu
+        <CardHeader className="text-center space-y-4">
+          <div className="flex justify-center">
+            <Logo size="lg" showText={false} />
+          </div>
+          <CardTitle className="text-3xl font-bold">
+            <span style={{
+              background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent'
+            }}>
+              CogitoSync
+            </span>
+          </CardTitle>
+          <CardDescription className="text-base text-gray-600 dark:text-gray-400">
+            Your Anonymous Cognitive Social Platform
           </CardDescription>
         </CardHeader>
         <CardContent>
