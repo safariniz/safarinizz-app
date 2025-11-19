@@ -452,6 +452,342 @@ async def subscribe_premium(current_user: dict = Depends(get_current_user)):
     }})
     return {"message": "Premium activated"}
 
+# Vibe Radar - Find nearby users by vibe
+@api_router.get("/v3/vibe-radar/nearby")
+async def vibe_radar_nearby(current_user: dict = Depends(get_current_user), limit: int = 20):
+    """Find users with similar vibes based on CSS patterns"""
+    try:
+        # Get current user's recent CSS
+        my_css = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+        
+        if not my_css:
+            return {"nearby": [], "message": "Create some CSS to find vibe matches"}
+        
+        # Calculate average light frequency as simple vibe metric
+        my_avg_freq = sum([c.get('light_frequency', 0.5) for c in my_css]) / len(my_css)
+        
+        # Find profiles with similar vibe patterns
+        all_profiles = await db.profiles.find({}, {"_id": 0}).limit(100).to_list(100)
+        matches = []
+        
+        for profile in all_profiles:
+            if profile['user_id'] == current_user['id']:
+                continue
+            
+            # Get their recent CSS
+            their_css = await db.css_snapshots.find({"user_id": profile['user_id']}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+            
+            if their_css:
+                their_avg_freq = sum([c.get('light_frequency', 0.5) for c in their_css]) / len(their_css)
+                similarity = 1 - abs(my_avg_freq - their_avg_freq)
+                
+                if similarity > 0.7:  # 70% similarity threshold
+                    matches.append({
+                        "profile": profile,
+                        "similarity": round(similarity * 100, 1),
+                        "recent_vibe": their_css[0].get('emotion_label', 'Unknown') if their_css else 'Unknown'
+                    })
+        
+        # Sort by similarity
+        matches.sort(key=lambda x: x['similarity'], reverse=True)
+        
+        return {"nearby": matches[:limit], "count": len(matches)}
+    except Exception as e:
+        logging.error(f"Vibe radar error: {e}")
+        return {"nearby": [], "error": "Could not fetch nearby vibes"}
+
+# Avatar Generation
+@api_router.post("/v3/avatar/generate")
+async def generate_avatar(current_user: dict = Depends(get_current_user)):
+    """Generate AI avatar based on user's CSS history"""
+    try:
+        # Get user's recent CSS
+        css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+        
+        if not css_list:
+            return {"error": "Need at least one CSS to generate avatar", "avatar_url": None}
+        
+        # Analyze CSS patterns
+        dominant_colors = [c.get('color', '#8B9DC3') for c in css_list[:3]]
+        emotions = [c.get('emotion_label', '') for c in css_list[:5]]
+        
+        # Create prompt for DALL-E
+        prompt = f"Abstract minimalist avatar representing emotional states: {', '.join(emotions[:3])}. Color palette: {', '.join(dominant_colors)}. Geometric, fluid, meditative style. No text, no face."
+        
+        # Generate with DALL-E
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("API key not configured")
+        
+        response = openai_client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1
+        )
+        
+        avatar_url = response.data[0].url
+        
+        # Update profile with avatar
+        await db.profiles.update_one(
+            {"user_id": current_user['id']},
+            {"$set": {"avatar_url": avatar_url}}
+        )
+        
+        # Store in avatar history
+        await db.avatar_evolutions.insert_one({
+            "id": str(uuid.uuid4()),
+            "user_id": current_user['id'],
+            "avatar_url": avatar_url,
+            "prompt": prompt,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        
+        return {"avatar_url": avatar_url, "message": "Avatar generated"}
+        
+    except Exception as e:
+        logging.error(f"Avatar generation error: {e}")
+        return {"error": "Could not generate avatar", "avatar_url": None, "fallback": True}
+
+@api_router.get("/v3/avatar/my")
+async def get_my_avatar(current_user: dict = Depends(get_current_user)):
+    """Get user's current avatar"""
+    profile = await db.profiles.find_one({"user_id": current_user['id']}, {"_id": 0, "avatar_url": 1})
+    if not profile:
+        return {"avatar_url": None}
+    return {"avatar_url": profile.get('avatar_url')}
+
+# Mood Journal Timeline
+@api_router.get("/v3/mood-journal/timeline")
+async def mood_timeline(current_user: dict = Depends(get_current_user), days: int = 7):
+    """Get mood timeline for the past N days"""
+    try:
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
+        
+        css_list = await db.css_snapshots.find(
+            {
+                "user_id": current_user['id'],
+                "timestamp": {"$gte": cutoff_date.isoformat()}
+            },
+            {"_id": 0}
+        ).sort("timestamp", 1).to_list(1000)
+        
+        # Group by day
+        timeline = {}
+        for css in css_list:
+            date_key = css['timestamp'][:10]  # YYYY-MM-DD
+            if date_key not in timeline:
+                timeline[date_key] = []
+            timeline[date_key].append(css)
+        
+        return {"timeline": timeline, "total_days": len(timeline), "total_entries": len(css_list)}
+    except Exception as e:
+        logging.error(f"Timeline error: {e}")
+        return {"timeline": {}, "error": "Could not fetch timeline"}
+
+# AI Coach Insights
+@api_router.get("/v3/ai-coach/insights")
+async def ai_coach_insights(current_user: dict = Depends(get_current_user)):
+    """Get AI-generated insights from CSS history"""
+    try:
+        css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(30).to_list(30)
+        
+        if not css_list:
+            return {"insights": [], "message": "Create more CSS to get insights"}
+        
+        # Analyze patterns
+        emotions = [c.get('emotion_label', '') for c in css_list]
+        frequencies = [c.get('light_frequency', 0.5) for c in css_list]
+        avg_freq = sum(frequencies) / len(frequencies)
+        
+        # Generate AI insight
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("API key not configured")
+        
+        prompt = f"""Analyze this user's recent emotional patterns and provide 3-4 brief, supportive insights.
+
+Recent emotions: {', '.join(emotions[:15])}
+Average intensity: {avg_freq:.2f}
+
+Give practical, empathetic observations about their emotional patterns. Be brief and actionable."""
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        insight_text = response.choices[0].message.content
+        
+        # Split into individual insights
+        insights = [line.strip() for line in insight_text.split('\n') if line.strip() and len(line.strip()) > 10]
+        
+        return {"insights": insights, "based_on_entries": len(css_list)}
+        
+    except Exception as e:
+        logging.error(f"AI insights error: {e}")
+        return {
+            "insights": [
+                "You're building awareness of your emotional patterns.",
+                "Regular check-ins help you understand yourself better.",
+                "Consider what triggers positive states for you."
+            ],
+            "fallback": True
+        }
+
+# AI Mood Forecast
+@api_router.get("/v3/ai-forecast/predict")
+async def mood_forecast(current_user: dict = Depends(get_current_user)):
+    """Predict mood trends for next 24 hours"""
+    try:
+        css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
+        
+        if len(css_list) < 5:
+            return {"forecast": "Need at least 5 CSS entries for forecast", "confidence": "low"}
+        
+        # Analyze recent trends
+        recent_emotions = [c.get('emotion_label', '') for c in css_list[:10]]
+        frequencies = [c.get('light_frequency', 0.5) for c in css_list[:10]]
+        
+        # Generate forecast with AI
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            raise ValueError("API key not configured")
+        
+        prompt = f"""Based on these recent emotional states, provide a brief 24-hour mood forecast:
+
+Recent states: {', '.join(recent_emotions[:7])}
+
+Give a short, supportive prediction (2-3 sentences) about likely emotional trends and one actionable tip."""
+
+        response = openai_client.chat.completions.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.7,
+            max_tokens=150
+        )
+        
+        forecast_text = response.choices[0].message.content
+        
+        return {"forecast": forecast_text, "confidence": "medium", "based_on": len(css_list)}
+        
+    except Exception as e:
+        logging.error(f"Forecast error: {e}")
+        return {
+            "forecast": "Continue your mindful awareness. Small positive actions compound over time.",
+            "confidence": "low",
+            "fallback": True
+        }
+
+# Room Dynamics
+@api_router.get("/v3/room/{room_id}/dynamics")
+async def room_dynamics(room_id: str):
+    """Get collective mood dynamics for a room"""
+    try:
+        # Get room members
+        members = await db.room_memberships.find({"room_id": room_id}, {"_id": 0, "user_id": 1}).to_list(100)
+        member_ids = [m['user_id'] for m in members]
+        
+        if not member_ids:
+            return {"dynamics": {}, "message": "No members in room"}
+        
+        # Get recent CSS from members
+        recent_css = await db.css_snapshots.find(
+            {"user_id": {"$in": member_ids}},
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(50).to_list(50)
+        
+        if not recent_css:
+            return {"dynamics": {}, "message": "No recent activity"}
+        
+        # Calculate collective metrics
+        emotions = {}
+        colors = []
+        total_freq = 0
+        
+        for css in recent_css:
+            emotion = css.get('emotion_label', 'Unknown')
+            emotions[emotion] = emotions.get(emotion, 0) + 1
+            colors.append(css.get('color', '#8B9DC3'))
+            total_freq += css.get('light_frequency', 0.5)
+        
+        dominant_emotion = max(emotions.items(), key=lambda x: x[1])[0] if emotions else "Mixed"
+        avg_frequency = total_freq / len(recent_css) if recent_css else 0.5
+        
+        dynamics = {
+            "dominant_emotion": dominant_emotion,
+            "emotion_distribution": emotions,
+            "collective_intensity": round(avg_frequency, 2),
+            "active_members": len(set([c['user_id'] for c in recent_css])),
+            "recent_activity_count": len(recent_css)
+        }
+        
+        return {"dynamics": dynamics}
+        
+    except Exception as e:
+        logging.error(f"Room dynamics error: {e}")
+        return {"dynamics": {}, "error": "Could not fetch dynamics"}
+
+# Empathy Match
+@api_router.get("/v3/empathy/find-match")
+async def empathy_match(current_user: dict = Depends(get_current_user)):
+    """Find empathy match based on emotional resonance"""
+    try:
+        # Get user's recent CSS
+        my_css = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+        
+        if len(my_css) < 3:
+            return {"match": None, "message": "Need at least 3 CSS entries to find matches"}
+        
+        # Extract emotional signature
+        my_emotions = [c.get('emotion_label', '').lower() for c in my_css]
+        my_textures = [c.get('sound_texture', '').lower() for c in my_css]
+        
+        # Find potential matches
+        all_users = await db.profiles.find({}, {"_id": 0, "user_id": 1}).limit(50).to_list(50)
+        matches = []
+        
+        for profile in all_users:
+            if profile['user_id'] == current_user['id']:
+                continue
+            
+            their_css = await db.css_snapshots.find({"user_id": profile['user_id']}, {"_id": 0}).sort("timestamp", -1).limit(10).to_list(10)
+            
+            if len(their_css) < 3:
+                continue
+            
+            their_emotions = [c.get('emotion_label', '').lower() for c in their_css]
+            their_textures = [c.get('sound_texture', '').lower() for c in their_css]
+            
+            # Calculate emotional overlap
+            emotion_overlap = len(set(my_emotions) & set(their_emotions))
+            texture_overlap = len(set(my_textures) & set(their_textures))
+            
+            empathy_score = (emotion_overlap * 10) + (texture_overlap * 5)
+            
+            if empathy_score > 15:
+                profile_data = await db.profiles.find_one({"user_id": profile['user_id']}, {"_id": 0})
+                matches.append({
+                    "profile": profile_data,
+                    "empathy_score": empathy_score,
+                    "shared_emotions": list(set(my_emotions) & set(their_emotions))[:3]
+                })
+        
+        # Sort by empathy score
+        matches.sort(key=lambda x: x['empathy_score'], reverse=True)
+        
+        best_match = matches[0] if matches else None
+        
+        return {"match": best_match, "total_potential_matches": len(matches)}
+        
+    except Exception as e:
+        logging.error(f"Empathy match error: {e}")
+        return {"match": None, "error": "Could not find matches"}
+
+
 # WebSocket
 @app.websocket("/ws/live")
 async def websocket_live(websocket: WebSocket, room_id: str = "global"):
