@@ -284,14 +284,14 @@ button:active {
 
 /* Gradient text */
 .gradient-text {
-  background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #22C6A8 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #06B6D4 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .gradient-bg {
-  background: linear-gradient(135deg, #6366F1 0%, #A855F7 50%, #22C6A8 100%);
+  background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 50%, #06B6D4 100%);
 }
 
 /* Soft neon glow effects */
