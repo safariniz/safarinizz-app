@@ -60,7 +60,7 @@ export default function MobileHeaderV3({ isPremium, onLogout }) {
               )}
               <DropdownMenuItem onClick={onLogout} className="text-red-600">
                 <LogOut className="w-4 h-4 mr-2" />
-                Logout
+                Çıkış Yap
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
