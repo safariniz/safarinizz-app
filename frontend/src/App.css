@@ -86,12 +86,12 @@ body {
 
 /* Light mode gradient background */
 body:not(.dark) {
-  background: linear-gradient(135deg, #E8F4F8 0%, #F5E6F0 50%, #E6F3E8 100%);
+  background: linear-gradient(135deg, #F4F1FA 0%, #EDE9F5 50%, #E8E4F0 100%);
 }
 
 /* Dark mode gradient background */
 body.dark {
-  background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #0F172A 100%);
+  background: linear-gradient(135deg, #0F0B25 0%, #1A1337 50%, #0F0B25 100%);
 }
 
 h1, h2, h3, h4, h5, h6 {
