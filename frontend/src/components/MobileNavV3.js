@@ -19,10 +19,9 @@ export default function MobileNavV3() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 z-50"
+      className="fixed bottom-0 left-0 right-0 nav-blur z-50 animate-slide-up"
       style={{
-        paddingBottom: 'env(safe-area-inset-bottom)',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.08)'
+        paddingBottom: 'max(env(safe-area-inset-bottom), 8px)'
       }}
       data-testid="mobile-nav-v3"
     >
@@ -34,13 +33,23 @@ export default function MobileNavV3() {
             <button
               key={tab.id}
               onClick={() => navigate(tab.path)}
-              className={`flex flex-col items-center justify-center transition-colors ${
-                active ? 'text-purple-600 dark:text-purple-400' : 'text-gray-500 dark:text-gray-400'
-              }`}
+              className={`
+                flex flex-col items-center justify-center 
+                transition-all duration-200 rounded-xl mx-1
+                ${active 
+                  ? 'text-purple-600 dark:text-purple-400 scale-105' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                }
+              `}
               data-testid={`nav-${tab.id}`}
             >
-              <Icon className={`w-5 h-5 mb-0.5 ${active ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-              <span className={`text-[10px] font-medium ${active ? 'font-semibold' : ''}`}>
+              <div className={`
+                p-1.5 rounded-lg transition-all
+                ${active ? 'bg-purple-100 dark:bg-purple-900/30' : ''}
+              `}>
+                <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
+              </div>
+              <span className={`text-[9px] font-medium mt-0.5 ${active ? 'font-bold' : ''}`}>
                 {tab.label}
               </span>
             </button>
