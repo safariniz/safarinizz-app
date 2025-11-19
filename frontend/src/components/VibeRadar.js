@@ -18,40 +18,34 @@ export default function VibeRadar() {
   const [loading, setLoading] = useState(false);
   const [location, setLocation] = useState(null);
 
-  const getLocation = () => {
+  const getLocation = async () => {
     setLoading(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const loc = {
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          };
-          setLocation(loc);
-          await fetchNearbyVibes(loc);
-        },
-        (error) => {
-          toast.error('Konum erişimi reddedildi');
-          setLoading(false);
-        }
-      );
-    } else {
-      toast.error('Tarayıcınız konum desteği vermiyor');
-      setLoading(false);
-    }
+    setLocation({ enabled: true });
+    await fetchNearbyVibes();
   };
 
-  const fetchNearbyVibes = async (loc) => {
+  const fetchNearbyVibes = async () => {
     try {
-      const response = await axios.post(
-        `${API}/vibe-radar/nearby`,
-        loc,
+      const response = await axios.get(
+        `${API}/v3/vibe-radar/nearby?limit=20`,
         getAuthHeader()
       );
-      setVibes(response.data.vibes);
-      toast.success(`${response.data.count} yakın vibe bulundu`);
+      
+      const matches = response.data.nearby || [];
+      
+      // Transform to old format for display
+      const transformedVibes = matches.map(match => ({
+        color: '#8B9DC3',
+        emotion_label: match.recent_vibe || 'Unknown',
+        sound_texture: `${match.similarity}% match`,
+        handle: match.profile?.handle || '@vibe-????'
+      }));
+      
+      setVibes(transformedVibes);
+      toast.success(`${matches.length} vibe matches found!`);
     } catch (error) {
-      toast.error('Vibelar yüklenemedi');
+      console.error('Vibe radar error:', error);
+      toast.error('Could not load nearby vibes');
     } finally {
       setLoading(false);
     }
