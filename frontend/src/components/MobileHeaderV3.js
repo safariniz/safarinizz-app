@@ -3,6 +3,7 @@ import { Menu, Crown, LogOut, Settings, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/context/ThemeContext';
+import Logo from '@/components/Logo';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,7 @@ export default function MobileHeaderV3({ isPremium, onLogout }) {
 
   return (
     <header 
-      className="fixed top-0 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 z-50"
+      className="fixed top-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-lg border-b border-gray-200 dark:border-gray-800 z-50"
       style={{
         paddingTop: 'env(safe-area-inset-top)',
         boxShadow: '0 2px 10px rgba(0,0,0,0.05)'
@@ -24,10 +25,17 @@ export default function MobileHeaderV3({ isPremium, onLogout }) {
       data-testid="mobile-header-v3"
     >
       <div className="flex items-center justify-between h-14 px-4">
-        <h1 className="text-xl font-bold gradient-text flex items-center gap-2">
-          CogitoSync
-          {isPremium && <Crown className="w-5 h-5 text-amber-500" />}
-        </h1>
+        <div className="flex items-center gap-2">
+          <Logo size="sm" showText={false} />
+          <span className="text-lg font-bold" style={{
+            background: 'linear-gradient(135deg, #6366F1 0%, #A855F7 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            CogitoSync
+          </span>
+          {isPremium && <Crown className="w-4 h-4 text-amber-500" />}
+        </div>
         
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={toggleDarkMode}>
