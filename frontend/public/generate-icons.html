@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CogitoSync Icon Generator</title>
+</head>
+<body>
+  <canvas id="canvas-192" width="192" height="192"></canvas>
+  <canvas id="canvas-512" width="512" height="512"></canvas>
+  <script>
+    // Generate 192x192 icon
+    const canvas192 = document.getElementById('canvas-192');
+    const ctx192 = canvas192.getContext('2d');
+    
+    // Background gradient
+    const gradient192 = ctx192.createLinearGradient(0, 0, 192, 192);
+    gradient192.addColorStop(0, '#6366F1');
+    gradient192.addColorStop(0.5, '#A855F7');
+    gradient192.addColorStop(1, '#22C6A8');
+    
+    ctx192.fillStyle = gradient192;
+    ctx192.fillRect(0, 0, 192, 192);
+    
+    // Draw overlapping circles (simplified logo)
+    ctx192.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx192.lineWidth = 12;
+    
+    ctx192.beginPath();
+    ctx192.arc(70, 96, 40, 0, Math.PI * 2);
+    ctx192.stroke();
+    
+    ctx192.beginPath();
+    ctx192.arc(122, 96, 40, 0, Math.PI * 2);
+    ctx192.stroke();
+    
+    // Center dot
+    ctx192.fillStyle = 'white';
+    ctx192.beginPath();
+    ctx192.arc(96, 96, 12, 0, Math.PI * 2);
+    ctx192.fill();
+    
+    // Generate 512x512 icon (same design, scaled)
+    const canvas512 = document.getElementById('canvas-512');
+    const ctx512 = canvas512.getContext('2d');
+    
+    const gradient512 = ctx512.createLinearGradient(0, 0, 512, 512);
+    gradient512.addColorStop(0, '#6366F1');
+    gradient512.addColorStop(0.5, '#A855F7');
+    gradient512.addColorStop(1, '#22C6A8');
+    
+    ctx512.fillStyle = gradient512;
+    ctx512.fillRect(0, 0, 512, 512);
+    
+    ctx512.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx512.lineWidth = 32;
+    
+    ctx512.beginPath();
+    ctx512.arc(186, 256, 106, 0, Math.PI * 2);
+    ctx512.stroke();
+    
+    ctx512.beginPath();
+    ctx512.arc(326, 256, 106, 0, Math.PI * 2);
+    ctx512.stroke();
+    
+    ctx512.fillStyle = 'white';
+    ctx512.beginPath();
+    ctx512.arc(256, 256, 32, 0, Math.PI * 2);
+    ctx512.fill();
+    
+    // Download links
+    setTimeout(() => {
+      document.body.innerHTML += '<br><a href="' + canvas192.toDataURL() + '" download="icon-192.png">Download 192x192</a>';
+      document.body.innerHTML += '<br><a href="' + canvas512.toDataURL() + '" download="icon-512.png">Download 512x512</a>';
+    }, 100);
+  </script>
+</body>
+</html>
