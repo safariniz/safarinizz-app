@@ -71,49 +71,61 @@ export default function CreatePage() {
   };
 
   return (
-    <div className="px-4 py-4 space-y-4">
+    <div className="px-4 py-4 space-y-4 animate-fade-in">
       {/* Input Card */}
-      <Card className="glass border-none shadow-lg">
-        <CardContent className="p-4 space-y-3">
+      <Card className="glass border-none shadow-xl hover-lift">
+        <CardContent className="p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
-            <Sparkles className="w-5 h-5 text-purple-600" />
-            <h2 className="font-semibold text-lg">Ruh Halimi Paylaş</h2>
+            <div className="p-2 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg">
+              <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <h2 className="font-semibold text-lg gradient-text">Share Your Vibe</h2>
           </div>
           <Textarea
-            placeholder="Bugün nasıl hissediyorsun? Örn: 'Hafif bir huzursuzluk var içimde...'"
+            placeholder="How are you feeling right now? Be honest, be abstract... 'A quiet storm brewing...'"
             value={emotionInput}
             onChange={(e) => setEmotionInput(e.target.value)}
-            className="min-h-32 bg-white/50 resize-none text-base"
+            className="min-h-32 glass-strong resize-none text-base focus:ring-2 focus:ring-purple-400 transition-all"
             data-testid="emotion-input"
           />
           <Button
             onClick={handleCreateCSS}
             disabled={loading}
-            className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-base font-medium"
+            className="w-full h-12 gradient-bg hover:opacity-90 text-base font-medium shadow-lg hover:shadow-xl transition-all"
             data-testid="create-css-button"
           >
-            {loading ? 'CSS Oluşturuluyor...' : 'CSS Oluştur'}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                Generating CSS...
+              </span>
+            ) : (
+              <span className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Create CSS
+              </span>
+            )}
           </Button>
         </CardContent>
       </Card>
 
       {/* CSS Display */}
       {currentCSS && (
-        <Card className="glass border-none shadow-lg">
-          <CardContent className="p-4">
+        <Card className="glass border-none shadow-xl animate-scale-in">
+          <CardContent className="p-5">
             {currentCSS.error && (
-              <div className="mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-amber-800">{currentCSS.description}</p>
+              <div className="mb-4 p-3 glass-strong border-l-4 border-amber-500 rounded-lg flex items-start gap-3">
+                <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                <p className="text-sm text-amber-800 dark:text-amber-300">{currentCSS.description}</p>
               </div>
             )}
             
-            <div className="flex justify-center mb-4">
+            <div className="flex justify-center mb-6">
               <div
-                className="css-orb w-32 h-32 light-glow"
+                className="css-orb-enhanced w-36 h-36"
                 style={{
                   backgroundColor: currentCSS.color,
-                  opacity: currentCSS.light_frequency
+                  filter: `brightness(${currentCSS.light_frequency * 1.2})`
                 }}
                 data-testid="css-orb"
               ></div>
