@@ -24,14 +24,14 @@ export default function Logo({ size = 'md', showText = true, className = '' }) {
           {/* Gradient Definitions */}
           <defs>
             <linearGradient id="cogito-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style={{ stopColor: '#6366F1', stopOpacity: 1 }} />
-              <stop offset="50%" style={{ stopColor: '#A855F7', stopOpacity: 1 }} />
-              <stop offset="100%" style={{ stopColor: '#22C6A8', stopOpacity: 1 }} />
+              <stop offset="0%" style={{ stopColor: '#7C3AED', stopOpacity: 1 }} />
+              <stop offset="50%" style={{ stopColor: '#4F46E5', stopOpacity: 1 }} />
+              <stop offset="100%" style={{ stopColor: '#06B6D4', stopOpacity: 1 }} />
             </linearGradient>
             
             <linearGradient id="cogito-gradient-light" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" style={{ stopColor: '#818CF8', stopOpacity: 0.6 }} />
-              <stop offset="100%" style={{ stopColor: '#C084FC', stopOpacity: 0.6 }} />
+              <stop offset="0%" style={{ stopColor: '#A78BFA', stopOpacity: 0.6 }} />
+              <stop offset="100%" style={{ stopColor: '#22D3EE', stopOpacity: 0.6 }} />
             </linearGradient>
           </defs>
           
