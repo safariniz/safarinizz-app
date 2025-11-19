@@ -50,41 +50,50 @@ export default function AICoachPanel({ isPremium }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!insight ? (
+        {insights.length === 0 && !loading ? (
           <div className="text-center py-8">
             <Button
               onClick={loadInsights}
               disabled={loading}
               data-testid="load-insights-button"
+              className="bg-gradient-to-r from-purple-500 to-blue-500"
             >
-              {loading ? 'İçgörüler Yükleniyor...' : 'İçgörüleri Gör'}
+              {loading ? 'Loading Insights...' : 'Get AI Insights'}
             </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              Based on your recent emotional patterns
+            </p>
+          </div>
+        ) : loading ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">Analyzing your patterns...</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {premiumRequired && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-xs text-amber-800">
-                  🔒 Premium özelliği: Sınırsız AI analizi için yükselt
+          <div className="space-y-3">
+            {fallback && (
+              <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-xs text-blue-800 dark:text-blue-300">
+                  💡 AI analysis temporarily limited. Showing basic insights.
                 </p>
               </div>
             )}
-            <div
-              className="p-4 bg-white/30 rounded-lg"
-              data-testid="insight-content"
-            >
-              <p className="text-sm">{insight.content}</p>
-              <p className="text-xs text-gray-500 mt-2">
-                {new Date(insight.created_at).toLocaleDateString('tr-TR')}
-              </p>
-            </div>
+            {insights.map((insight, idx) => (
+              <div
+                key={idx}
+                className="p-4 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700"
+                data-testid={`insight-${idx}`}
+              >
+                <p className="text-sm text-gray-800 dark:text-gray-200">{insight}</p>
+              </div>
+            ))}
             <Button
               variant="outline"
               size="sm"
               onClick={loadInsights}
               className="w-full"
+              disabled={loading}
             >
-              Yenile
+              Refresh Insights
             </Button>
           </div>
         )}
