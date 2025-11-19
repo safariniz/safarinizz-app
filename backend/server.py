@@ -164,16 +164,16 @@ async def generate_css_with_ai(emotion_input: str) -> dict:
         if not api_key:
             raise ValueError("API key not configured")
         
-        system_prompt = """Generate a JSON object representing an emotional cognitive state snapshot.
-Return ONLY valid JSON with these exact fields:
+        system_prompt = """Duygusal bir bilişsel durum anlık görüntüsünü temsil eden bir JSON nesnesi oluştur.
+SADECE şu alanları içeren geçerli JSON döndür:
 {
-  "color": "#RRGGBB hex color",
-  "light_frequency": number between 0.0 and 1.0,
-  "sound_texture": "descriptive word like flowing/sharp/warm",
-  "emotion_label": "short emotion label",
-  "description": "brief poetic description"
+  "color": "#RRGGBB hex renk kodu",
+  "light_frequency": 0.0 ile 1.0 arasında sayı,
+  "sound_texture": "akan/keskin/sıcak gibi tanımlayıcı kelime",
+  "emotion_label": "kısa Türkçe duygu etiketi (örn: Huzurlu Odak, Coşkulu Enerji, Yumuşak Kaygı)",
+  "description": "kısa şiirsel Türkçe açıklama"
 }
-All values must be properly typed. light_frequency must be a number (float), not a string."""
+Tüm değerler doğru tipte olmalı. light_frequency sayı (float) olmalı, string değil. Tüm metinler Türkçe olmalı."""
 
         response = openai_client.chat.completions.create(
             model="gpt-4o",
