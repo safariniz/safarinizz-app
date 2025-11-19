@@ -73,7 +73,7 @@ export default function AuthPage({ onLogin }) {
             </span>
           </CardTitle>
           <CardDescription className="text-base text-gray-600 dark:text-gray-400">
-            Your Anonymous Cognitive Social Platform
+            Anonim Bilişsel Sosyal Platformun
           </CardDescription>
         </CardHeader>
         <CardContent>
