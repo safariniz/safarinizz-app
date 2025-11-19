@@ -1,185 +1,172 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { User, Edit, Crown } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+import { User, Edit, Save, Sparkles, Users, Heart } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
-function getAuthHeader() {
-  const token = localStorage.getItem('cogito_token');
-  return { headers: { Authorization: `Bearer ${token}` } };
-}
-
-const VIBE_IDENTITIES = [
-  { id: 'Ember', label: '🔥 Ember', desc: 'Energetic' },
-  { id: 'Mist', label: '🌫️ Mist', desc: 'Calm' },
-  { id: 'Flux', label: '⚡ Flux', desc: 'Chaotic' },
-  { id: 'Nova', label: '✨ Nova', desc: 'Inspired' },
-  { id: 'Echo', label: '💫 Echo', desc: 'Empathic' },
-  { id: 'Drift', label: '🌊 Drift', desc: 'Tired' },
-  { id: 'Prism', label: '🌈 Prism', desc: 'Curious' }
-];
+const getAuthHeader = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+});
 
 export default function ProfilePageV3() {
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showSetup, setShowSetup] = useState(false);
-  const [selectedVibe, setSelectedVibe] = useState('Ember');
-  const navigate = useNavigate();
+  const [editing, setEditing] = useState(false);
+  const [bio, setBio] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadProfile();
   }, []);
 
   const loadProfile = async () => {
-    setLoading(true);
     try {
       const response = await axios.get(`${API}/v3/profile/me`, getAuthHeader());
       setProfile(response.data);
+      setBio(response.data.bio || '');
     } catch (error) {
-      if (error.response?.status === 404) {
-        setShowSetup(true);
-      }
+      console.error('Profil yüklenemedi:', error);
+      toast.error('Profil yüklenemedi');
+    }
+  };
+
+  const handleSave = async () => {
+    setLoading(true);
+    try {
+      await axios.put(`${API}/v3/profile/update`, { bio }, getAuthHeader());
+      toast.success('Profil güncellendi');
+      setEditing(false);
+      loadProfile();
+    } catch (error) {
+      toast.error('Profil güncellenemedi');
     } finally {
       setLoading(false);
     }
   };
 
-  const createProfile = async () => {
-    try {
-      await axios.post(
-        `${API}/v3/profile/create`,
-        { vibe_identity: selectedVibe },
-        getAuthHeader()
-      );
-      toast.success('Profile created!');
-      await loadProfile();
-      setShowSetup(false);
-    } catch (error) {
-      toast.error('Failed to create profile');
-    }
-  };
-
-  if (loading) {
+  if (!profile) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p>Loading...</p>
-      </div>
-    );
-  }
-
-  if (showSetup) {
-    return (
-      <div className="px-4 py-8">
-        <Card className="glass border-none shadow-xl max-w-md mx-auto">
-          <CardContent className="p-6 space-y-6">
-            <div className="text-center">
-              <User className="w-16 h-16 mx-auto mb-4 text-purple-600" />
-              <h2 className="text-2xl font-bold mb-2">Choose Your Vibe</h2>
-              <p className="text-sm text-gray-600">Select your emotional identity</p>
-            </div>
-            
-            <div className="space-y-2">
-              {VIBE_IDENTITIES.map((vibe) => (
-                <button
-                  key={vibe.id}
-                  onClick={() => setSelectedVibe(vibe.id)}
-                  className={`w-full p-4 rounded-lg border-2 transition text-left ${
-                    selectedVibe === vibe.id
-                      ? 'border-purple-600 bg-purple-50'
-                      : 'border-gray-200 hover:border-purple-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <span className="text-lg font-semibold">{vibe.label}</span>
-                      <p className="text-sm text-gray-600">{vibe.desc}</p>
-                    </div>
-                    {selectedVibe === vibe.id && (
-                      <div className="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center">
-                        <span className="text-white text-xs">✓</span>
-                      </div>
-                    )}
-                  </div>
-                </button>
-              ))}
-            </div>
-
-            <Button
-              onClick={createProfile}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600"
-            >
-              Create Profile
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="px-4 py-4">
+        <div className="text-center py-8">
+          <p className="text-gray-500">Yükleniyor...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="px-4 py-4 space-y-4">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold gradient-text">Profilim</h1>
+        <User className="w-6 h-6 text-purple-600" />
+      </div>
+
+      {/* Profile Header Card */}
       <Card className="glass border-none shadow-xl">
         <CardContent className="p-6">
-          {/* Avatar */}
-          <div className="flex justify-center mb-6">
-            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white text-3xl font-bold">
-              {profile?.handle?.substring(0, 2).toUpperCase()}
+          <div className="flex flex-col items-center text-center mb-6">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center mb-4">
+              <User className="w-12 h-12 text-white" />
             </div>
+            <h2 className="text-2xl font-bold gradient-text">{profile.handle}</h2>
+            <Badge className="mt-2 bg-gradient-to-r from-purple-500 to-pink-500">
+              {profile.vibe_identity}
+            </Badge>
           </div>
 
-          {/* Handle */}
-          <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold mb-1">@{profile?.handle}</h2>
-            <p className="text-sm text-gray-600">
-              {VIBE_IDENTITIES.find(v => v.id === profile?.vibe_identity)?.label || profile?.vibe_identity}
-            </p>
-          </div>
-
-          {/* Stats */}
           <div className="grid grid-cols-3 gap-4 mb-6">
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile?.css_count || 0}</p>
-              <p className="text-xs text-gray-600">CSS</p>
+              <div className="flex items-center justify-center gap-1 text-purple-600 mb-1">
+                <Sparkles className="w-4 h-4" />
+                <span className="text-2xl font-bold">{profile.css_count || 0}</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">CSS</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile?.followers_count || 0}</p>
-              <p className="text-xs text-gray-600">Followers</p>
+              <div className="flex items-center justify-center gap-1 text-blue-600 mb-1">
+                <Users className="w-4 h-4" />
+                <span className="text-2xl font-bold">{profile.followers_count || 0}</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Takipçi</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{profile?.following_count || 0}</p>
-              <p className="text-xs text-gray-600">Following</p>
+              <div className="flex items-center justify-center gap-1 text-pink-600 mb-1">
+                <Heart className="w-4 h-4" />
+                <span className="text-2xl font-bold">{profile.following_count || 0}</span>
+              </div>
+              <p className="text-xs text-gray-600 dark:text-gray-400">Takip</p>
             </div>
           </div>
 
-          {/* Bio */}
-          {profile?.bio && (
-            <div className="mb-4 p-3 bg-white/30 rounded-lg">
-              <p className="text-sm">{profile.bio}</p>
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Hakkımda</h3>
+              {!editing && (
+                <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
             </div>
-          )}
 
-          {/* Actions */}
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('/edit-profile')}
-            >
-              <Edit className="w-4 h-4 mr-2" />
-              Edit Profile
-            </Button>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => navigate('/avatar-evolution')}
-            >
-              Avatar Evolution
-            </Button>
+            {editing ? (
+              <div className="space-y-2">
+                <Textarea
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  placeholder="Kendini kısaca anlat..."
+                  className="glass-strong min-h-24"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    className="gradient-bg flex-1"
+                    onClick={handleSave}
+                    disabled={loading}
+                  >
+                    <Save className="w-4 h-4 mr-1" />
+                    Kaydet
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      setEditing(false);
+                      setBio(profile.bio || '');
+                    }}
+                  >
+                    İptal
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 dark:text-gray-400 glass-strong p-3 rounded-lg">
+                {profile.bio || 'Henüz bir şey yazmışsın...'}
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Stats Card */}
+      <Card className="glass border-none shadow-lg">
+        <CardContent className="p-4">
+          <h3 className="font-semibold mb-3">Aktivite</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Üyelik:</span>
+              <span className="font-medium">
+                {new Date(profile.created_at).toLocaleDateString('tr-TR')}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600 dark:text-gray-400">Vibe Kimliği:</span>
+              <Badge variant="outline">{profile.vibe_identity}</Badge>
+            </div>
           </div>
         </CardContent>
       </Card>

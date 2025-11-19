@@ -1,66 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, TrendingUp, LogIn, LogOut } from 'lucide-react';
 import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Users, TrendingUp, LogIn, LogOut } from 'lucide-react';
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = process.env.REACT_APP_BACKEND_URL || '';
 
-function getAuthHeader() {
-  const token = localStorage.getItem('cogito_token');
-  return { headers: { Authorization: `Bearer ${token}` } };
-}
-
-const CATEGORIES = ['All', 'Focus', 'Chill', 'Overthinking', 'Students', 'Night Owls', 'Creators'];
+const getAuthHeader = () => ({
+  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+});
 
 export default function CommunityRoomsPageV3() {
   const [rooms, setRooms] = useState([]);
-  const [trending, setTrending] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('All');
-  const [joinedRooms, setJoinedRooms] = useState(new Set());
   const [loading, setLoading] = useState(false);
+  const [joinedRooms, setJoinedRooms] = useState(new Set());
 
   useEffect(() => {
     loadRooms();
-    loadTrending();
-  }, [selectedCategory]);
+  }, []);
 
   const loadRooms = async () => {
     setLoading(true);
     try {
-      const params = selectedCategory !== 'All' ? `?category=${selectedCategory}` : '';
-      const response = await axios.get(`${API}/v3/rooms/list${params}`, getAuthHeader());
+      const response = await axios.get(`${API}/v3/rooms/list`, getAuthHeader());
       setRooms(response.data.rooms || []);
     } catch (error) {
-      toast.error('Failed to load rooms');
+      console.error('Odalar yüklenemedi:', error);
+      toast.error('Odalar yüklenemedi');
     } finally {
       setLoading(false);
     }
   };
 
-  const loadTrending = async () => {
-    try {
-      const response = await axios.get(`${API}/v3/rooms/trending`, getAuthHeader());
-      setTrending(response.data.rooms || []);
-    } catch (error) {
-      console.error('Failed to load trending');
-    }
-  };
-
-  const joinRoom = async (roomId) => {
+  const handleJoin = async (roomId) => {
     try {
       await axios.post(`${API}/v3/rooms/${roomId}/join`, {}, getAuthHeader());
-      setJoinedRooms(prev => new Set([...prev, roomId]));
-      toast.success('Joined room');
+      setJoinedRooms(prev => new Set(prev).add(roomId));
+      toast.success('Odaya katıldın');
       loadRooms();
     } catch (error) {
-      toast.error('Failed to join room');
+      toast.error('Odaya katılamadın');
     }
   };
 
-  const leaveRoom = async (roomId) => {
+  const handleLeave = async (roomId) => {
     try {
       await axios.post(`${API}/v3/rooms/${roomId}/leave`, {}, getAuthHeader());
       setJoinedRooms(prev => {
@@ -68,119 +53,71 @@ export default function CommunityRoomsPageV3() {
         newSet.delete(roomId);
         return newSet;
       });
-      toast.success('Left room');
+      toast.success('Odadan çıktın');
       loadRooms();
     } catch (error) {
-      toast.error('Failed to leave room');
+      toast.error('Odadan çıkılamadı');
     }
   };
 
   return (
     <div className="px-4 py-4 space-y-4">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-bold mb-1">Community Rooms</h2>
-        <p className="text-sm text-gray-600">Join vibe-based spaces</p>
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-2xl font-bold gradient-text">Topluluk Odaları</h1>
+        <Users className="w-6 h-6 text-purple-600" />
       </div>
 
-      {/* Trending */}
-      {trending.length > 0 && (
-        <div>
-          <div className="flex items-center gap-2 mb-3">
-            <TrendingUp className="w-4 h-4 text-orange-500" />
-            <h3 className="font-semibold text-sm">Trending Now</h3>
-          </div>
-          <div className="flex gap-2 overflow-x-auto pb-2">
-            {trending.map((room) => (
-              <Card
-                key={room.id}
-                className="flex-shrink-0 w-48 glass border-none shadow-md"
-              >
-                <CardContent className="p-3">
-                  <p className="font-semibold text-sm mb-1">{room.name}</p>
-                  <p className="text-xs text-gray-600 mb-2">{room.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-gray-500">
-                      <Users className="inline w-3 h-3 mr-1" />
-                      {room.member_count}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-6 text-xs px-2"
-                      onClick={() => joinRoom(room.id)}
-                    >
-                      Join
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Category Filter */}
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {CATEGORIES.map((cat) => (
-          <Button
-            key={cat}
-            size="sm"
-            variant={selectedCategory === cat ? 'default' : 'outline'}
-            onClick={() => setSelectedCategory(cat)}
-            className="flex-shrink-0"
-          >
-            {cat}
-          </Button>
-        ))}
-      </div>
-
-      {/* Room List */}
       {loading ? (
         <div className="text-center py-8">
-          <p className="text-gray-600">Loading rooms...</p>
+          <p className="text-gray-500">Yükleniyor...</p>
         </div>
-      ) : rooms.length === 0 ? (
-        <Card className="glass border-none shadow-lg">
-          <CardContent className="p-8 text-center">
-            <p className="text-gray-600">No rooms in this category</p>
-          </CardContent>
-        </Card>
       ) : (
         <div className="space-y-3">
           {rooms.map((room) => (
-            <Card key={room.id} className="glass border-none shadow-md">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-2">
+            <Card key={room.id} className="glass border-none shadow-md hover-lift">
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <h3 className="font-semibold mb-1">{room.name}</h3>
-                    <p className="text-sm text-gray-600 mb-2">{room.description}</p>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded">
-                        {room.category}
-                      </span>
-                      <span>
-                        <Users className="inline w-3 h-3 mr-1" />
-                        {room.member_count} members
-                      </span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <CardTitle className="text-lg">{room.name}</CardTitle>
+                      {room.is_trending && (
+                        <Badge variant="default" className="bg-gradient-to-r from-orange-500 to-pink-500">
+                          <TrendingUp className="w-3 h-3 mr-1" />
+                          Popüler
+                        </Badge>
+                      )}
                     </div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{room.description}</p>
                   </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                    <span className="flex items-center gap-1">
+                      <Users className="w-4 h-4" />
+                      {room.member_count} üye
+                    </span>
+                    <Badge variant="outline">{room.category}</Badge>
+                  </div>
+                  
                   {joinedRooms.has(room.id) ? (
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => leaveRoom(room.id)}
+                      onClick={() => handleLeave(room.id)}
                     >
                       <LogOut className="w-4 h-4 mr-1" />
-                      Leave
+                      Çık
                     </Button>
                   ) : (
                     <Button
                       size="sm"
-                      onClick={() => joinRoom(room.id)}
+                      className="gradient-bg"
+                      onClick={() => handleJoin(room.id)}
                     >
                       <LogIn className="w-4 h-4 mr-1" />
-                      Join
+                      Katıl
                     </Button>
                   )}
                 </div>
