@@ -79,10 +79,10 @@ export default function CreatePage() {
             <div className="p-2 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg">
               <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
-            <h2 className="font-semibold text-lg gradient-text">Share Your Vibe</h2>
+            <h2 className="font-semibold text-lg gradient-text">Ruh Halini Paylaş</h2>
           </div>
           <Textarea
-            placeholder="How are you feeling right now? Be honest, be abstract... 'A quiet storm brewing...'"
+            placeholder="Şu an nasıl hissediyorsun? Dürüst ol, soyut ol... 'İçimde sessiz bir fırtına büyüyor...'"
             value={emotionInput}
             onChange={(e) => setEmotionInput(e.target.value)}
             className="min-h-32 glass-strong resize-none text-base focus:ring-2 focus:ring-purple-400 transition-all"
@@ -97,12 +97,12 @@ export default function CreatePage() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Generating CSS...
+                CSS Oluşturuluyor...
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
-                Create CSS
+                CSS Oluştur
               </span>
             )}
           </Button>
