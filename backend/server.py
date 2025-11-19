@@ -791,12 +791,55 @@ async def empathy_match(current_user: dict = Depends(get_current_user)):
 # WebSocket
 @app.websocket("/ws/live")
 async def websocket_live(websocket: WebSocket, room_id: str = "global"):
+    """Enhanced WebSocket with mobile reconnection support"""
     await manager.connect(websocket, room_id)
+    
+    # Send initial connection confirmation
     try:
+        await websocket.send_json({
+            "type": "connection",
+            "status": "connected",
+            "room_id": room_id,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+    except:
+        pass
+    
+    try:
+        # Heartbeat mechanism for mobile stability
+        last_ping = datetime.now(timezone.utc)
+        
         while True:
-            await websocket.receive_text()
-            await asyncio.sleep(1)
+            try:
+                # Wait for message with timeout
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
+                
+                # Handle ping/pong
+                if data == "ping":
+                    await websocket.send_text("pong")
+                    last_ping = datetime.now(timezone.utc)
+                
+                # Check if client is still responsive
+                if (datetime.now(timezone.utc) - last_ping).seconds > 60:
+                    # Send ping to check connection
+                    await websocket.send_json({"type": "ping"})
+                    last_ping = datetime.now(timezone.utc)
+                
+            except asyncio.TimeoutError:
+                # Send keep-alive ping
+                try:
+                    await websocket.send_json({"type": "ping"})
+                    last_ping = datetime.now(timezone.utc)
+                except:
+                    break
+            except:
+                break
+                
     except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logging.error(f"WebSocket error: {e}")
+    finally:
         manager.disconnect(websocket, room_id)
 
 app.include_router(api_router)
