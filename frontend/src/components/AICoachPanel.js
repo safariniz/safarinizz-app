@@ -14,18 +14,23 @@ function getAuthHeader() {
 }
 
 export default function AICoachPanel({ isPremium }) {
-  const [insight, setInsight] = useState(null);
+  const [insights, setInsights] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [premiumRequired, setPremiumRequired] = useState(false);
+  const [fallback, setFallback] = useState(false);
 
   const loadInsights = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/ai-coach/insights`, getAuthHeader());
-      setInsight(response.data.insight);
-      setPremiumRequired(response.data.premium_required);
+      const response = await axios.get(`${API}/v3/ai-coach/insights`, getAuthHeader());
+      setInsights(response.data.insights || []);
+      setFallback(response.data.fallback || false);
+      
+      if (response.data.insights && response.data.insights.length > 0) {
+        toast.success('Insights loaded!');
+      }
     } catch (error) {
-      toast.error('İçgörüler yüklenemedi');
+      console.error('Insights error:', error);
+      toast.error('Could not load AI insights');
     } finally {
       setLoading(false);
     }
