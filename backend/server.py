@@ -631,9 +631,9 @@ Duygusal örüntüleri hakkında pratik, empatik gözlemler sun. Kısa ve uygula
         logging.error(f"AI insights error: {e}")
         return {
             "insights": [
-                "You're building awareness of your emotional patterns.",
-                "Regular check-ins help you understand yourself better.",
-                "Consider what triggers positive states for you."
+                "Duygusal örüntülerin hakkında farkındalık geliştiriyorsun.",
+                "Düzenli kontroller kendini daha iyi anlamana yardımcı oluyor.",
+                "Hangi durumların seni olumlu hissettirdiğini gözlemle."
             ],
             "fallback": True
         }
