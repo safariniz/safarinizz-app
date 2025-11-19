@@ -606,12 +606,12 @@ async def ai_coach_insights(current_user: dict = Depends(get_current_user)):
         if not api_key:
             raise ValueError("API key not configured")
         
-        prompt = f"""Analyze this user's recent emotional patterns and provide 3-4 brief, supportive insights.
+        prompt = f"""Bu kullanıcının son duygusal örüntülerini analiz et ve 3-4 kısa, destekleyici içgörü sun. TÜRKÇE yaz.
 
-Recent emotions: {', '.join(emotions[:15])}
-Average intensity: {avg_freq:.2f}
+Son duygular: {', '.join(emotions[:15])}
+Ortalama yoğunluk: {avg_freq:.2f}
 
-Give practical, empathetic observations about their emotional patterns. Be brief and actionable."""
+Duygusal örüntüleri hakkında pratik, empatik gözlemler sun. Kısa ve uygulanabilir ol. Her içgörü 1-2 cümle olsun."""
 
         response = openai_client.chat.completions.create(
             model="gpt-4o",
