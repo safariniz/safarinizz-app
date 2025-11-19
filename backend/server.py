@@ -387,7 +387,7 @@ async def coach_message(msg: CoachMessage, current_user: dict = Depends(get_curr
         reply = response.choices[0].message.content
     except Exception as e:
         logging.error(f"Coach AI error: {e}")
-        reply = "I'm having trouble connecting. Please try again."
+        reply = "Şu an bağlantı kurmakta zorlanıyorum. Lütfen tekrar dene."
     
     messages.append({"role": "assistant", "content": reply})
     await db.coach_sessions.update_one({"id": msg.session_id}, {"$set": {"messages": messages}})
