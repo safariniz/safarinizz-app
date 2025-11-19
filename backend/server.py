@@ -201,8 +201,8 @@ Tüm değerler doğru tipte olmalı. light_frequency sayı (float) olmalı, stri
     except Exception as e:
         logging.error(f"AI CSS error: {e}")
         return {
-            "color": "#8B9DC3", "light_frequency": 0.5, "sound_texture": "flowing",
-            "emotion_label": "Belirsiz Dalga", "description": "İçsel bir titreşim.",
+            "color": "#8B9DC3", "light_frequency": 0.5, "sound_texture": "akan",
+            "emotion_label": "Belirsiz Dalga", "description": "İçsel bir titreşim, henüz biçimlenmemiş.",
             "error": "fallback"
         }
 
