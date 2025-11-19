@@ -4,8 +4,8 @@
   "description": "Anonymous Cognitive Social Platform - Track and share your emotional state",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0F172A",
-  "theme_color": "#6366F1",
+  "background_color": "#0F0B25",
+  "theme_color": "#7C3AED",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
