@@ -26,26 +26,40 @@ export default function MoodTimeline() {
   const loadTimeline = async () => {
     setLoading(true);
     try {
+      const days = period === 'daily' ? 1 : period === 'weekly' ? 7 : 30;
       const response = await axios.get(
-        `${API}/mood-journal/timeline?period=${period}`,
+        `${API}/v3/mood-journal/timeline?days=${days}`,
         getAuthHeader()
       );
       
-      const entries = response.data.entries;
-      const cssData = response.data.css_data;
+      const timeline = response.data.timeline || {};
       
-      const chartData = entries.map((entry, i) => {
-        const css = cssData.find(c => c.id === entry.css_id);
-        return {
-          time: new Date(entry.timestamp).getHours() + ':00',
-          frequency: css ? css.light_frequency * 100 : 50,
-          label: css ? css.emotion_label : 'N/A'
-        };
+      // Transform timeline data for chart
+      const chartData = [];
+      Object.keys(timeline).sort().forEach(date => {
+        const cssEntries = timeline[date];
+        if (cssEntries.length > 0) {
+          // Calculate average frequency for the day
+          const avgFreq = cssEntries.reduce((sum, css) => sum + (css.light_frequency || 0.5), 0) / cssEntries.length;
+          const dominantEmotion = cssEntries[0].emotion_label || 'Unknown';
+          
+          chartData.push({
+            time: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            frequency: avgFreq * 100,
+            label: dominantEmotion,
+            count: cssEntries.length
+          });
+        }
       });
       
       setTimelineData(chartData);
+      
+      if (chartData.length === 0) {
+        toast.info('No mood data for this period');
+      }
     } catch (error) {
-      toast.error('Timeline yüklenemedi');
+      console.error('Timeline error:', error);
+      toast.error('Could not load timeline');
     } finally {
       setLoading(false);
     }
