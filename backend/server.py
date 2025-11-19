@@ -657,11 +657,11 @@ async def mood_forecast(current_user: dict = Depends(get_current_user)):
         if not api_key:
             raise ValueError("API key not configured")
         
-        prompt = f"""Based on these recent emotional states, provide a brief 24-hour mood forecast:
+        prompt = f"""Bu son duygusal durumlara dayanarak kısa bir 24 saatlik ruh hali tahmini sun. TÜRKÇE yaz.
 
-Recent states: {', '.join(recent_emotions[:7])}
+Son durumlar: {', '.join(recent_emotions[:7])}
 
-Give a short, supportive prediction (2-3 sentences) about likely emotional trends and one actionable tip."""
+Olası duygusal eğilimler hakkında kısa, destekleyici bir tahmin (2-3 cümle) ve uygulanabilir bir öneri ver."""
 
         response = openai_client.chat.completions.create(
             model="gpt-4o",
