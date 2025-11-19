@@ -677,8 +677,8 @@ Olası duygusal eğilimler hakkında kısa, destekleyici bir tahmin (2-3 cümle)
     except Exception as e:
         logging.error(f"Forecast error: {e}")
         return {
-            "forecast": "Continue your mindful awareness. Small positive actions compound over time.",
-            "confidence": "low",
+            "forecast": "Bilinçli farkındalığına devam et. Küçük olumlu adımlar zamanla büyük etkiler yaratır.",
+            "confidence": "düşük",
             "fallback": True
         }
 
