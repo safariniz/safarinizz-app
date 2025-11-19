@@ -381,7 +381,7 @@ async def coach_message(msg: CoachMessage, current_user: dict = Depends(get_curr
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": "You are an empathetic AI coach. Be supportive."}, *messages],
+            messages=[{"role": "system", "content": "Sen empatik bir yapay zeka koçusun. Türkçe konuş. Destekleyici, anlayışlı ve yargısız ol. Kısa ve öz cevaplar ver. Kullanıcının duygusal durumunu onaylayarak başla ve küçük, uygulanabilir öneriler sun."}, *messages],
             temperature=0.7, max_tokens=150
         )
         reply = response.choices[0].message.content
