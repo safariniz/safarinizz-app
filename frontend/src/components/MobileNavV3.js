@@ -7,12 +7,12 @@ export default function MobileNavV3() {
   const location = useLocation();
 
   const tabs = [
-    { id: 'create', label: 'Create', icon: Sparkles, path: '/' },
-    { id: 'live', label: 'Live', icon: Activity, path: '/live' },
-    { id: 'feed', label: 'Feed', icon: TrendingUp, path: '/feed' },
-    { id: 'insights', label: 'Insights', icon: MessageCircle, path: '/coach' },
+    { id: 'create', label: 'Oluştur', icon: Sparkles, path: '/' },
+    { id: 'live', label: 'Canlı', icon: Activity, path: '/live' },
+    { id: 'feed', label: 'Akış', icon: TrendingUp, path: '/feed' },
+    { id: 'insights', label: 'İçgörüler', icon: MessageCircle, path: '/coach' },
     { id: 'radar', label: 'Radar', icon: Radar, path: '/radar' },
-    { id: 'profile', label: 'Profile', icon: User, path: '/profile' }
+    { id: 'profile', label: 'Profil', icon: User, path: '/profile' }
   ];
 
   const isActive = (path) => location.pathname === path;
