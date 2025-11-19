@@ -75,37 +75,47 @@ export default function VibeRadar() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              {vibes.slice(0, 8).map((vibe, i) => (
-                <div
-                  key={i}
-                  className="p-3 rounded-lg glass"
-                  style={{ backgroundColor: vibe.color + '30' }}
-                  data-testid={`vibe-pulse-${i}`}
-                >
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="w-3 h-3 rounded-full light-glow"
-                      style={{ backgroundColor: vibe.color }}
-                    ></div>
-                    <span className="text-xs font-medium">
+            {vibes.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                <p>No vibe matches yet.</p>
+                <p className="text-xs mt-2">Create more CSS to find resonance!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-3">
+                {vibes.slice(0, 8).map((vibe, i) => (
+                  <div
+                    key={i}
+                    className="p-3 rounded-lg glass dark:bg-gray-800/50"
+                    style={{ backgroundColor: vibe.color + '20' }}
+                    data-testid={`vibe-pulse-${i}`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: vibe.color }}
+                      ></div>
+                      <span className="text-xs font-mono text-gray-700 dark:text-gray-300">
+                        {vibe.handle}
+                      </span>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {vibe.emotion_label}
-                    </span>
+                    </p>
+                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                      {vibe.sound_texture}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-600 mt-1">
-                    {vibe.sound_texture}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => fetchNearbyVibes(location)}
+              onClick={() => fetchNearbyVibes()}
               className="w-full"
               data-testid="refresh-radar-button"
             >
-              Yenile
+              Refresh Radar
             </Button>
           </div>
         )}
