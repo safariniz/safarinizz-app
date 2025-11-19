@@ -53,39 +53,51 @@ export default function MoodForecast({ isPremium }) {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {premiumRequired ? (
-          <div className="text-center py-8">
-            <Lock className="w-12 h-12 mx-auto mb-4 text-amber-500" />
-            <p className="text-sm text-gray-600">Premium özelliği</p>
-            <p className="text-xs text-gray-500 mt-2">
-              24 saatlik AI tahminleri için yükselt
-            </p>
-          </div>
-        ) : !forecast ? (
+        {!forecast ? (
           <div className="text-center py-8">
             <Button
               onClick={loadForecast}
               disabled={loading}
               data-testid="load-forecast-button"
+              className="bg-gradient-to-r from-blue-500 to-teal-500"
             >
-              {loading ? 'Tahmin Hazırlanıyor...' : 'Tahmin Al'}
+              {loading ? 'Analyzing Patterns...' : 'Get 24h Forecast'}
             </Button>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              AI-powered mood prediction
+            </p>
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="hour" stroke="#666" />
-              <YAxis stroke="#666" />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  border: 'none',
-                  borderRadius: '8px'
-                }}
-              />
-              <Bar dataKey="value" fill="#667eea" radius={[8, 8, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="space-y-4">
+            {fallback && (
+              <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded text-xs text-yellow-800 dark:text-yellow-300">
+                ⚠️ AI forecast limited. Showing basic prediction.
+              </div>
+            )}
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-800 dark:to-gray-800 rounded-lg">
+              <p className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed">
+                {forecast}
+              </p>
+              <div className="flex items-center gap-2 mt-3 text-xs text-gray-600 dark:text-gray-400">
+                <span className={`px-2 py-1 rounded ${
+                  confidence === 'high' ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' :
+                  confidence === 'medium' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' :
+                  'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                }`}>
+                  {confidence} confidence
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={loadForecast}
+              className="w-full"
+              disabled={loading}
+            >
+              Refresh Forecast
+            </Button>
+          </div>
         )}
       </CardContent>
     </Card>
