@@ -17,27 +17,27 @@ function getAuthHeader() {
 export default function MoodForecast({ isPremium }) {
   const [forecast, setForecast] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [premiumRequired, setPremiumRequired] = useState(false);
+  const [confidence, setConfidence] = useState('low');
+  const [fallback, setFallback] = useState(false);
 
   const loadForecast = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/ai-forecast/predict`, getAuthHeader());
+      const response = await axios.get(`${API}/v3/ai-forecast/predict`, getAuthHeader());
       setForecast(response.data.forecast);
-      setPremiumRequired(response.data.premium_required);
+      setConfidence(response.data.confidence || 'low');
+      setFallback(response.data.fallback || false);
+      
+      if (response.data.forecast) {
+        toast.success('Forecast ready!');
+      }
     } catch (error) {
-      toast.error('Tahmin yüklenemedi');
+      console.error('Forecast error:', error);
+      toast.error('Could not generate forecast');
     } finally {
       setLoading(false);
     }
   };
-
-  const chartData = forecast
-    ? forecast.hours.map((h, i) => ({
-        hour: `${h}:00`,
-        value: forecast.predictions[i] * 100
-      }))
-    : [];
 
   return (
     <Card className="glass border-none shadow-xl" data-testid="mood-forecast-card">
