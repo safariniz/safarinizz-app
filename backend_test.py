@@ -185,26 +185,79 @@ class CogitoSyncV3APITester:
 
     # ========== CSS CREATION WITH AI TESTS (P0) ==========
     
-    def test_create_css_with_ai(self):
-        """Test CSS creation with OpenAI integration"""
-        emotion_input = "I feel peaceful and contemplative today, like watching clouds drift across a vast sky"
+    def test_create_css_with_ai_turkish(self):
+        """Test CSS creation with Turkish emotion input"""
+        emotion_input = "İçimde derin bir huzursuzluk var, sanki fırtına öncesi sessizlik"
         
         success, response = self.run_test(
-            "CSS Creation with AI",
+            "CSS Creation with AI (Turkish)",
             "POST",
             "css/create",
             200,
-            data={"emotion_input": emotion_input},
+            data={"emotion_input": emotion_input, "language": "tr"},
             priority="P0"
         )
         
         if success and 'id' in response:
             self.css_id = response['id']
-            print(f"   ✅ CSS Created: {response.get('emotion_label', 'Unknown')}")
+            print(f"   ✅ CSS Created (TR): {response.get('emotion_label', 'Unknown')}")
             print(f"   ✅ Color: {response.get('color', 'Unknown')}")
             print(f"   ✅ Light Frequency: {response.get('light_frequency', 'Unknown')}")
             print(f"   ✅ Sound Texture: {response.get('sound_texture', 'Unknown')}")
             print(f"   ✅ Description: {response.get('description', 'Unknown')}")
+            
+            # Verify Turkish content
+            emotion_label = response.get('emotion_label', '')
+            description = response.get('description', '')
+            
+            # Check if response contains Turkish characters or words
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in emotion_label + description for char in turkish_indicators)
+            
+            if has_turkish:
+                print("   ✅ Response contains Turkish content")
+            else:
+                print("   ⚠️  WARNING: Response may not be in Turkish")
+            
+            # Verify AI generated real data (not fallback)
+            if response.get('error') == 'fallback':
+                print("   ⚠️  WARNING: AI returned fallback data - OpenAI integration may have issues")
+            
+            return True
+        return False
+
+    def test_create_css_with_ai_english(self):
+        """Test CSS creation with English emotion input"""
+        emotion_input = "I feel a quiet storm brewing inside me, like the calm before thunder"
+        
+        success, response = self.run_test(
+            "CSS Creation with AI (English)",
+            "POST",
+            "css/create",
+            200,
+            data={"emotion_input": emotion_input, "language": "en"},
+            priority="P0"
+        )
+        
+        if success and 'id' in response:
+            print(f"   ✅ CSS Created (EN): {response.get('emotion_label', 'Unknown')}")
+            print(f"   ✅ Color: {response.get('color', 'Unknown')}")
+            print(f"   ✅ Light Frequency: {response.get('light_frequency', 'Unknown')}")
+            print(f"   ✅ Sound Texture: {response.get('sound_texture', 'Unknown')}")
+            print(f"   ✅ Description: {response.get('description', 'Unknown')}")
+            
+            # Verify English content
+            emotion_label = response.get('emotion_label', '')
+            description = response.get('description', '')
+            
+            # Check if response is in English (no Turkish characters)
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in emotion_label + description for char in turkish_indicators)
+            
+            if not has_turkish:
+                print("   ✅ Response is in English")
+            else:
+                print("   ⚠️  WARNING: Response may contain Turkish content")
             
             # Verify AI generated real data (not fallback)
             if response.get('error') == 'fallback':
