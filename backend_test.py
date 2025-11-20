@@ -771,9 +771,10 @@ class CogitoSyncV3APITester:
         self.test_get_my_profile()
         self.test_update_profile()
         
-        # CSS Creation with AI
-        print("\n🎨 CSS Creation with AI Tests:")
-        self.test_create_css_with_ai()
+        # CSS Creation with AI (Bilingual)
+        print("\n🎨 CSS Creation with AI Tests (Bilingual):")
+        self.test_create_css_with_ai_turkish()
+        self.test_create_css_with_ai_english()
         self.test_get_css_history()
         
         # Social Features
@@ -783,10 +784,18 @@ class CogitoSyncV3APITester:
         self.test_get_personalized_feed()
         self.test_get_global_feed()
         
-        # AI Coach
-        print("\n🤖 AI Coach Tests:")
+        # AI Coach (Bilingual)
+        print("\n🤖 AI Coach Tests (Bilingual):")
         self.test_start_coach_session()
-        self.test_coach_message()
+        self.test_coach_message_turkish()
+        self.test_coach_message_english()
+        
+        # AI Insights and Forecast (Bilingual)
+        print("\n🧠 AI Insights and Forecast Tests (Bilingual):")
+        self.test_ai_coach_insights_turkish()
+        self.test_ai_coach_insights_english()
+        self.test_mood_forecast_turkish()
+        self.test_mood_forecast_english()
 
         # ========== P1 TESTS ==========
         print("\n🏢 P1 TESTS - Community Features")
