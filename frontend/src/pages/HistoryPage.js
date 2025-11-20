@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -14,7 +15,8 @@ function getAuthHeader() {
   return { headers: { Authorization: `Bearer ${token}` } };
 }
 
-export default function HistoryPage({ onLogout }) {
+export default function HistoryPage() {
+  const { t, i18n } = useTranslation();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -26,9 +28,9 @@ export default function HistoryPage({ onLogout }) {
   const loadHistory = async () => {
     try {
       const response = await axios.get(`${API}/css/my-history`, getAuthHeader());
-      setHistory(response.data);
+      setHistory(response.data.history || []);
     } catch (error) {
-      toast.error('Geçmiş yüklenemedi');
+      toast.error(t('history.loadError', 'Could not load history'));
     } finally {
       setLoading(false);
     }
@@ -45,26 +47,28 @@ export default function HistoryPage({ onLogout }) {
             data-testid="back-button"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Geri
+            {t('common.back')}
           </Button>
-          <h1 className="text-3xl font-bold gradient-text" data-testid="history-title">CSS Geçmişim</h1>
+          <h1 className="text-3xl font-bold gradient-text" data-testid="history-title">
+            {t('history.title', 'My CSS History')}
+          </h1>
         </div>
       </header>
 
       <div className="max-w-6xl mx-auto">
         {loading ? (
-          <p className="text-center text-gray-500" data-testid="loading-text">Yükleniyor...</p>
+          <p className="text-center text-gray-500" data-testid="loading-text">{t('common.loading')}</p>
         ) : history.length === 0 ? (
           <Card className="glass border-none shadow-xl" data-testid="empty-history-card">
             <CardContent className="p-12 text-center">
               <TrendingUp className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-              <p className="text-gray-600">Henüz CSS oluşturmadınız.</p>
+              <p className="text-gray-600">{t('history.empty', 'No CSS created yet.')}</p>
               <Button
                 className="mt-4"
                 onClick={() => navigate('/')}
                 data-testid="create-first-css-button"
               >
-                İlk CSS'inizi Oluşturun
+                {t('history.createFirst', 'Create Your First CSS')}
               </Button>
             </CardContent>
           </Card>
@@ -95,21 +99,21 @@ export default function HistoryPage({ onLogout }) {
                   </p>
                   <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
                     <div>
-                      <span className="block">Renk</span>
+                      <span className="block">{t('history.color', 'Color')}</span>
                       <span className="font-mono" data-testid={`css-color-${index}`}>{css.color}</span>
                     </div>
                     <div>
-                      <span className="block">Frekans</span>
+                      <span className="block">{t('history.frequency', 'Frequency')}</span>
                       <span data-testid={`css-freq-${index}`}>{(css.light_frequency * 100).toFixed(0)}%</span>
                     </div>
                     <div className="col-span-2">
-                      <span className="block">Ses Dokusu</span>
+                      <span className="block">{t('history.texture', 'Texture')}</span>
                       <span className="capitalize" data-testid={`css-texture-${index}`}>{css.sound_texture}</span>
                     </div>
                     <div className="col-span-2 mt-2">
-                      <span className="block">Tarih</span>
+                      <span className="block">{t('history.date', 'Date')}</span>
                       <span data-testid={`css-date-${index}`}>
-                        {new Date(css.timestamp).toLocaleDateString('tr-TR', {
+                        {new Date(css.timestamp).toLocaleDateString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
                           day: 'numeric',
                           month: 'long',
                           year: 'numeric',

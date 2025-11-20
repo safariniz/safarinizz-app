@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity } from 'lucide-react';
 import WebSocketService from '@/services/websocket';
@@ -6,6 +7,7 @@ import WebSocketService from '@/services/websocket';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
 export default function LivePage() {
+  const { t, i18n } = useTranslation();
   const [liveCSS, setLiveCSS] = useState([]);
   const [connected, setConnected] = useState(false);
 
@@ -30,12 +32,12 @@ export default function LivePage() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Activity className="w-5 h-5 text-purple-600" />
-          <h2 className="text-lg font-semibold">Canlı CSS Akışı</h2>
+          <h2 className="text-lg font-semibold">{t('live.title', 'Live CSS Stream')}</h2>
         </div>
         <span className={`text-xs px-2 py-1 rounded-full ${
           connected ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
         }`}>
-          {connected ? 'LIVE' : 'BAĞLANIYOR'}
+          {connected ? t('live.connected', 'LIVE') : t('live.connecting', 'CONNECTING')}
         </span>
       </div>
 
@@ -43,8 +45,8 @@ export default function LivePage() {
         <Card className="glass border-none shadow-lg">
           <CardContent className="p-8 text-center">
             <Activity className="w-12 h-12 mx-auto mb-3 text-gray-400" />
-            <p className="text-gray-600">Canlı CSS'ler burada görünecek...</p>
-            <p className="text-xs text-gray-500 mt-1">Gerçek zamanlı akış bağlantısı aktif</p>
+            <p className="text-gray-600">{t('live.waiting', 'Live CSS will appear here...')}</p>
+            <p className="text-xs text-gray-500 mt-1">{t('live.streamActive', 'Real-time stream active')}</p>
           </CardContent>
         </Card>
       ) : (
@@ -70,7 +72,7 @@ export default function LivePage() {
                   </p>
                 </div>
                 <span className="text-xs text-gray-500 flex-shrink-0">
-                  {new Date(css.timestamp).toLocaleTimeString('tr-TR', {
+                  {new Date(css.timestamp).toLocaleTimeString(i18n.language === 'tr' ? 'tr-TR' : 'en-US', {
                     hour: '2-digit',
                     minute: '2-digit'
                   })}
