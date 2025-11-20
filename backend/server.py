@@ -399,16 +399,24 @@ async def coach_message(msg: CoachMessage, current_user: dict = Depends(get_curr
     messages = session.get('messages', [])
     messages.append({"role": "user", "content": msg.message})
     
+    language = msg.language or 'tr'
+    if language == 'en':
+        system_message = "You are an empathetic AI coach. Speak in English. Be supportive, understanding, and non-judgmental. Give short and concise answers. Start by validating the user's emotional state and offer small, actionable suggestions."
+        error_message = "I'm having trouble connecting right now. Please try again."
+    else:
+        system_message = "Sen empatik bir yapay zeka koçusun. Türkçe konuş. Destekleyici, anlayışlı ve yargısız ol. Kısa ve öz cevaplar ver. Kullanıcının duygusal durumunu onaylayarak başla ve küçük, uygulanabilir öneriler sun."
+        error_message = "Şu an bağlantı kurmakta zorlanıyorum. Lütfen tekrar dene."
+    
     try:
         response = openai_client.chat.completions.create(
             model="gpt-4o",
-            messages=[{"role": "system", "content": "Sen empatik bir yapay zeka koçusun. Türkçe konuş. Destekleyici, anlayışlı ve yargısız ol. Kısa ve öz cevaplar ver. Kullanıcının duygusal durumunu onaylayarak başla ve küçük, uygulanabilir öneriler sun."}, *messages],
+            messages=[{"role": "system", "content": system_message}, *messages],
             temperature=0.7, max_tokens=150
         )
         reply = response.choices[0].message.content
     except Exception as e:
         logging.error(f"Coach AI error: {e}")
-        reply = "Şu an bağlantı kurmakta zorlanıyorum. Lütfen tekrar dene."
+        reply = error_message
     
     messages.append({"role": "assistant", "content": reply})
     await db.coach_sessions.update_one({"id": msg.session_id}, {"$set": {"messages": messages}})
