@@ -150,6 +150,23 @@
     "similarity": "uyum",
     "refreshRadar": "Radarı Yenile"
   },
+  "live": {
+    "title": "Canlı CSS Akışı",
+    "connected": "CANLI",
+    "connecting": "BAĞLANIYOR",
+    "waiting": "Canlı CSS'ler burada görünecek...",
+    "streamActive": "Gerçek zamanlı akış bağlantısı aktif"
+  },
+  "history": {
+    "title": "CSS Geçmişim",
+    "loadError": "Geçmiş yüklenemedi",
+    "empty": "Henüz CSS oluşturmadınız.",
+    "createFirst": "İlk CSS'inizi Oluşturun",
+    "color": "Renk",
+    "frequency": "Frekans",
+    "texture": "Ses Dokusu",
+    "date": "Tarih"
+  },
   "menu": {
     "settings": "Ayarlar",
     "premium": "Premium",
