@@ -800,9 +800,10 @@ class CogitoSyncV3APITester:
         # ========== P1 TESTS ==========
         print("\n🏢 P1 TESTS - Community Features")
         
-        # Community Rooms
-        print("\n🏠 Community Rooms Tests:")
-        self.test_list_rooms()
+        # Community Rooms (Bilingual)
+        print("\n🏠 Community Rooms Tests (Bilingual):")
+        self.test_list_rooms_turkish()
+        self.test_list_rooms_english()
         self.test_trending_rooms()
         self.test_join_room()
         self.test_leave_room()
