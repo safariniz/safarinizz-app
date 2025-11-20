@@ -361,26 +361,73 @@ class CogitoSyncV3APITester:
             return True
         return False
 
-    def test_coach_message(self):
-        """Test sending message to AI coach"""
+    def test_coach_message_turkish(self):
+        """Test sending Turkish message to AI coach"""
         if not self.session_id:
-            self.log_test("Coach Message", False, "No session ID available")
+            self.log_test("Coach Message (Turkish)", False, "No session ID available")
             return False
             
         success, response = self.run_test(
-            "Coach Message",
+            "Coach Message (Turkish)",
             "POST",
             "v3/coach/message",
             200,
             data={
                 "session_id": self.session_id,
-                "message": "I'm feeling overwhelmed with work today. Can you help me find some clarity?"
+                "message": "Bugün işte çok bunalmış hissediyorum. Biraz netlik bulmama yardım edebilir misin?",
+                "language": "tr"
             },
             priority="P0"
         )
         
         if success and 'reply' in response:
-            print(f"   ✅ AI Coach replied: {response['reply'][:100]}...")
+            reply = response['reply']
+            print(f"   ✅ AI Coach replied (TR): {reply[:100]}...")
+            
+            # Check if response contains Turkish characters
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in reply for char in turkish_indicators)
+            
+            if has_turkish:
+                print("   ✅ Coach response is in Turkish")
+            else:
+                print("   ⚠️  WARNING: Coach response may not be in Turkish")
+            
+            return True
+        return False
+
+    def test_coach_message_english(self):
+        """Test sending English message to AI coach"""
+        if not self.session_id:
+            self.log_test("Coach Message (English)", False, "No session ID available")
+            return False
+            
+        success, response = self.run_test(
+            "Coach Message (English)",
+            "POST",
+            "v3/coach/message",
+            200,
+            data={
+                "session_id": self.session_id,
+                "message": "I'm feeling overwhelmed with work today. Can you help me find some clarity?",
+                "language": "en"
+            },
+            priority="P0"
+        )
+        
+        if success and 'reply' in response:
+            reply = response['reply']
+            print(f"   ✅ AI Coach replied (EN): {reply[:100]}...")
+            
+            # Check if response is in English (no Turkish characters)
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in reply for char in turkish_indicators)
+            
+            if not has_turkish:
+                print("   ✅ Coach response is in English")
+            else:
+                print("   ⚠️  WARNING: Coach response may contain Turkish content")
+            
             return True
         return False
 
