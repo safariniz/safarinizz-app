@@ -158,13 +158,25 @@ def hash_location(lat: float, lon: float, precision: int = 3) -> str:
     return hashlib.md5(f"{rounded_lat}:{rounded_lon}".encode()).hexdigest()[:8]
 
 # AI Functions
-async def generate_css_with_ai(emotion_input: str) -> dict:
+async def generate_css_with_ai(emotion_input: str, language: str = 'tr') -> dict:
     try:
         api_key = os.environ.get('OPENAI_API_KEY')
         if not api_key:
             raise ValueError("API key not configured")
         
-        system_prompt = """Duygusal bir bilişsel durum anlık görüntüsünü temsil eden bir JSON nesnesi oluştur.
+        if language == 'en':
+            system_prompt = """Create a JSON object representing an emotional cognitive state snapshot.
+Return ONLY valid JSON with these fields:
+{
+  "color": "#RRGGBB hex color code",
+  "light_frequency": number between 0.0 and 1.0,
+  "sound_texture": "descriptive word like flowing/sharp/warm",
+  "emotion_label": "short English emotion label (e.g., Peaceful Focus, Excited Energy, Soft Anxiety)",
+  "description": "short poetic English description"
+}
+All values must be correct types. light_frequency must be a number (float), not a string. All text must be in English."""
+        else:
+            system_prompt = """Duygusal bir bilişsel durum anlık görüntüsünü temsil eden bir JSON nesnesi oluştur.
 SADECE şu alanları içeren geçerli JSON döndür:
 {
   "color": "#RRGGBB hex renk kodu",
