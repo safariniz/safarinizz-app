@@ -115,6 +115,7 @@
     "title": "My Profile",
     "about": "About",
     "bio": "Tell us about yourself...",
+    "bioPlaceholder": "Tell us about yourself...",
     "noBio": "You haven't written anything yet...",
     "followers": "Followers",
     "following": "Following",
