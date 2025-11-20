@@ -103,6 +103,7 @@ class CSS(BaseModel):
 class CSSCreate(BaseModel):
     emotion_input: str
     location: Optional[Dict[str, float]] = None
+    language: Optional[str] = 'tr'
 
 class ProfileCreate(BaseModel):
     vibe_identity: str
