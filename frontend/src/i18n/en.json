@@ -50,7 +50,13 @@
     "createButton": "Create CSS",
     "creating": "Creating CSS...",
     "created": "CSS created",
-    "error": "Could not create CSS"
+    "error": "Could not create CSS",
+    "emptyError": "Please describe your mood",
+    "quotaError": "⚠️ OpenAI quota exceeded. Please wait a bit.",
+    "apiError": "AI service temporarily unavailable",
+    "emotionLabel": "Emotion Label",
+    "description": "Description",
+    "reactions": "Reactions"
   },
   "feed": {
     "title": "Emotion Feed",
