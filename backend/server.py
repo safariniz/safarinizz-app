@@ -116,6 +116,7 @@ class ProfileUpdate(BaseModel):
 class CoachMessage(BaseModel):
     session_id: str
     message: str
+    language: Optional[str] = 'tr'
 
 class Reaction(BaseModel):
     css_id: str
