@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Heart, Users, TrendingUp } from 'lucide-react';
@@ -12,6 +13,7 @@ const getAuthHeader = () => ({
 });
 
 export default function FeedPageV3() {
+  const { t } = useTranslation();
   const [feed, setFeed] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('global');
@@ -28,7 +30,7 @@ export default function FeedPageV3() {
       setFeed(response.data.feed || []);
     } catch (error) {
       console.error('Feed yüklenemedi:', error);
-      toast.error('Akış yüklenemedi');
+      toast.error(t('feed.loadError'));
     } finally {
       setLoading(false);
     }
@@ -37,17 +39,17 @@ export default function FeedPageV3() {
   const handleFollow = async (userId) => {
     try {
       await axios.post(`${API}/v3/social/follow/${userId}`, {}, getAuthHeader());
-      toast.success('Takip edildi');
+      toast.success(t('feed.followSuccess'));
       loadFeed();
     } catch (error) {
-      toast.error('Takip edilemedi');
+      toast.error(t('feed.followError'));
     }
   };
 
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold gradient-text">Duygu Akışı</h1>
+        <h1 className="text-2xl font-bold gradient-text">{t('feed.title')}</h1>
         <TrendingUp className="w-6 h-6 text-purple-600" />
       </div>
 
@@ -58,7 +60,7 @@ export default function FeedPageV3() {
           className="flex-1"
         >
           <Users className="w-4 h-4 mr-2" />
-          Genel Akış
+          {t('feed.global')}
         </Button>
         <Button
           variant={activeTab === 'personal' ? 'default' : 'outline'}
@@ -66,19 +68,19 @@ export default function FeedPageV3() {
           className="flex-1"
         >
           <Heart className="w-4 h-4 mr-2" />
-          Takip Ettiklerim
+          {t('feed.following')}
         </Button>
       </div>
 
       {loading ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">Yükleniyor...</p>
+          <p className="text-gray-500">{t('common.loading')}</p>
         </div>
       ) : feed.length === 0 ? (
         <Card className="glass border-none">
           <CardContent className="p-8 text-center">
             <p className="text-gray-500">
-              {activeTab === 'global' ? 'Henüz paylaşım yok' : 'Takip ettiğin kişilerden paylaşım yok'}
+              {activeTab === 'global' ? t('feed.noPostsGlobal') : t('feed.noPostsFollowing')}
             </p>
           </CardContent>
         </Card>
@@ -104,7 +106,7 @@ export default function FeedPageV3() {
                       variant="outline"
                       onClick={() => handleFollow(item.profile.user_id)}
                     >
-                      Takip Et
+                      {t('feed.followButton')}
                     </Button>
                   )}
                 </div>
@@ -114,7 +116,7 @@ export default function FeedPageV3() {
 
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span>{new Date(item.timestamp).toLocaleDateString('tr-TR')}</span>
-                  <span>Işık: {(item.light_frequency * 100).toFixed(0)}%</span>
+                  <span>{t('feed.lightLevel')}: {(item.light_frequency * 100).toFixed(0)}%</span>
                 </div>
               </CardContent>
             </Card>

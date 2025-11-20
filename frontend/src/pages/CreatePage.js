@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,13 +17,14 @@ function getAuthHeader() {
 }
 
 export default function CreatePage() {
+  const { t, i18n } = useTranslation();
   const [emotionInput, setEmotionInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentCSS, setCurrentCSS] = useState(null);
 
   const handleCreateCSS = async () => {
     if (!emotionInput.trim()) {
-      toast.error('Lütfen ruh halinizi tanımlayın');
+      toast.error(t('create.emptyError'));
       return;
     }
 
@@ -46,25 +48,24 @@ export default function CreatePage() {
 
       const response = await axios.post(
         `${API}/css/create`,
-        { emotion_input: emotionInput, location },
+        { emotion_input: emotionInput, location, language: i18n.language },
         getAuthHeader()
       );
       
       const css = response.data;
       
-      // Check for AI errors
       if (css.error === 'quota_exceeded') {
-        toast.error('⚠️ OpenAI kotası doldu. Lütfen biraz bekleyin.');
+        toast.error(t('create.quotaError'));
       } else if (css.error === 'api_error') {
-        toast.warning('AI servisi geçici olarak erişilemiyor');
+        toast.warning(t('create.apiError'));
       } else if (!css.error) {
-        toast.success('CSS oluşturuldu!');
+        toast.success(t('create.created'));
       }
       
       setCurrentCSS(css);
       setEmotionInput('');
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'CSS oluşturulamadı');
+      toast.error(error.response?.data?.detail || t('create.error'));
     } finally {
       setLoading(false);
     }
@@ -72,17 +73,16 @@ export default function CreatePage() {
 
   return (
     <div className="px-4 py-4 space-y-4 animate-fade-in">
-      {/* Input Card */}
       <Card className="glass border-none shadow-xl hover-lift">
         <CardContent className="p-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <div className="p-2 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-lg">
               <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
             </div>
-            <h2 className="font-semibold text-lg gradient-text">Ruh Halini Paylaş</h2>
+            <h2 className="font-semibold text-lg gradient-text">{t('create.title')}</h2>
           </div>
           <Textarea
-            placeholder="Şu an nasıl hissediyorsun? Dürüst ol, soyut ol... 'İçimde sessiz bir fırtına büyüyor...'"
+            placeholder={t('create.placeholder')}
             value={emotionInput}
             onChange={(e) => setEmotionInput(e.target.value)}
             className="min-h-32 glass-strong resize-none text-base focus:ring-2 focus:ring-purple-400 transition-all"
@@ -97,19 +97,18 @@ export default function CreatePage() {
             {loading ? (
               <span className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                CSS Oluşturuluyor...
+                {t('create.creating')}
               </span>
             ) : (
               <span className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4" />
-                CSS Oluştur
+                {t('create.createButton')}
               </span>
             )}
           </Button>
         </CardContent>
       </Card>
 
-      {/* CSS Display */}
       {currentCSS && (
         <Card className="glass border-none shadow-xl animate-scale-in">
           <CardContent className="p-5">
@@ -133,7 +132,7 @@ export default function CreatePage() {
 
             <div className="space-y-3">
               <div>
-                <p className="text-xs text-gray-600 mb-1">Duygusal Etiket</p>
+                <p className="text-xs text-gray-600 mb-1">{t('create.emotionLabel')}</p>
                 <p className="text-lg font-semibold" data-testid="css-emotion-label">
                   {currentCSS.emotion_label}
                 </p>
@@ -142,14 +141,14 @@ export default function CreatePage() {
               {!currentCSS.error && (
                 <>
                   <div>
-                    <p className="text-xs text-gray-600 mb-1">Açıklama</p>
+                    <p className="text-xs text-gray-600 mb-1">{t('create.description')}</p>
                     <p className="text-sm" data-testid="css-description">
                       {currentCSS.description}
                     </p>
                   </div>
                   
                   <div className="pt-3 border-t">
-                    <p className="text-xs text-gray-600 mb-2">Reaksiyonlar</p>
+                    <p className="text-xs text-gray-600 mb-2">{t('create.reactions')}</p>
                     <CSSReactionPicker cssId={currentCSS.id} />
                   </div>
                 </>
