@@ -710,7 +710,14 @@ async def mood_forecast(language: str = 'tr', current_user: dict = Depends(get_c
         if not api_key:
             raise ValueError("API key not configured")
         
-        prompt = f"""Bu son duygusal durumlara dayanarak kısa bir 24 saatlik ruh hali tahmini sun. TÜRKÇE yaz.
+        if language == 'en':
+            prompt = f"""Based on these recent emotional states, provide a brief 24-hour mood forecast. Write in ENGLISH.
+
+Recent states: {', '.join(recent_emotions[:7])}
+
+Give a short, supportive prediction about potential emotional trends (2-3 sentences) and an actionable suggestion."""
+        else:
+            prompt = f"""Bu son duygusal durumlara dayanarak kısa bir 24 saatlik ruh hali tahmini sun. TÜRKÇE yaz.
 
 Son durumlar: {', '.join(recent_emotions[:7])}
 
