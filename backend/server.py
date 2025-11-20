@@ -212,11 +212,18 @@ Tüm değerler doğru tipte olmalı. light_frequency sayı (float) olmalı, stri
         return result
     except Exception as e:
         logging.error(f"AI CSS error: {e}")
-        return {
-            "color": "#8B9DC3", "light_frequency": 0.5, "sound_texture": "akan",
-            "emotion_label": "Belirsiz Dalga", "description": "İçsel bir titreşim, henüz biçimlenmemiş.",
-            "error": "fallback"
-        }
+        if language == 'en':
+            return {
+                "color": "#8B9DC3", "light_frequency": 0.5, "sound_texture": "flowing",
+                "emotion_label": "Uncertain Wave", "description": "An internal vibration, not yet formed.",
+                "error": "fallback"
+            }
+        else:
+            return {
+                "color": "#8B9DC3", "light_frequency": 0.5, "sound_texture": "akan",
+                "emotion_label": "Belirsiz Dalga", "description": "İçsel bir titreşim, henüz biçimlenmemiş.",
+                "error": "fallback"
+            }
 
 # Routes
 @api_router.get("/")
