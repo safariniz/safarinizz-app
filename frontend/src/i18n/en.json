@@ -127,7 +127,9 @@
     "updateError": "Could not update profile",
     "loadError": "Could not load profile",
     "settings": "Settings",
-    "language": "Language"
+    "language": "Language",
+    "languageSettings": "Language Settings",
+    "languageDesc": "Change app language"
   },
   "insights": {
     "title": "Insights",
