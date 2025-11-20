@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { User, Edit, Save, Sparkles, Users, Heart } from 'lucide-react';
+import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 const API = process.env.REACT_APP_BACKEND_URL || '';
 
@@ -15,6 +17,7 @@ const getAuthHeader = () => ({
 });
 
 export default function ProfilePageV3() {
+  const { t } = useTranslation();
   const [profile, setProfile] = useState(null);
   const [editing, setEditing] = useState(false);
   const [bio, setBio] = useState('');
@@ -31,7 +34,7 @@ export default function ProfilePageV3() {
       setBio(response.data.bio || '');
     } catch (error) {
       console.error('Profil yüklenemedi:', error);
-      toast.error('Profil yüklenemedi');
+      toast.error(t('profile.loadError'));
     }
   };
 
@@ -39,11 +42,11 @@ export default function ProfilePageV3() {
     setLoading(true);
     try {
       await axios.put(`${API}/v3/profile/update`, { bio }, getAuthHeader());
-      toast.success('Profil güncellendi');
+      toast.success(t('profile.updateSuccess'));
       setEditing(false);
       loadProfile();
     } catch (error) {
-      toast.error('Profil güncellenemedi');
+      toast.error(t('profile.updateError'));
     } finally {
       setLoading(false);
     }
@@ -53,7 +56,7 @@ export default function ProfilePageV3() {
     return (
       <div className="px-4 py-4">
         <div className="text-center py-8">
-          <p className="text-gray-500">Yükleniyor...</p>
+          <p className="text-gray-500">{t('common.loading')}</p>
         </div>
       </div>
     );
@@ -62,9 +65,22 @@ export default function ProfilePageV3() {
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold gradient-text">Profilim</h1>
+        <h1 className="text-2xl font-bold gradient-text">{t('profile.title')}</h1>
         <User className="w-6 h-6 text-purple-600" />
       </div>
+
+      {/* Language Switcher Card */}
+      <Card className="glass border-none shadow-lg">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-sm mb-1">{t('profile.languageSettings')}</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('profile.languageDesc')}</p>
+            </div>
+            <LanguageSwitcher variant="outline" />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Profile Header Card */}
       <Card className="glass border-none shadow-xl">
@@ -92,20 +108,20 @@ export default function ProfilePageV3() {
                 <Users className="w-4 h-4" />
                 <span className="text-2xl font-bold">{profile.followers_count || 0}</span>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Takipçi</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('profile.followers')}</p>
             </div>
             <div className="text-center">
               <div className="flex items-center justify-center gap-1 text-pink-600 mb-1">
                 <Heart className="w-4 h-4" />
                 <span className="text-2xl font-bold">{profile.following_count || 0}</span>
               </div>
-              <p className="text-xs text-gray-600 dark:text-gray-400">Takip</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">{t('profile.following')}</p>
             </div>
           </div>
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">Hakkımda</h3>
+              <h3 className="font-semibold text-sm text-gray-700 dark:text-gray-300">{t('profile.about')}</h3>
               {!editing && (
                 <Button size="sm" variant="ghost" onClick={() => setEditing(true)}>
                   <Edit className="w-4 h-4" />
@@ -118,7 +134,7 @@ export default function ProfilePageV3() {
                 <Textarea
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  placeholder="Kendini kısaca anlat..."
+                  placeholder={t('profile.bioPlaceholder')}
                   className="glass-strong min-h-24"
                 />
                 <div className="flex gap-2">
@@ -129,7 +145,7 @@ export default function ProfilePageV3() {
                     disabled={loading}
                   >
                     <Save className="w-4 h-4 mr-1" />
-                    Kaydet
+                    {t('common.save')}
                   </Button>
                   <Button
                     size="sm"
@@ -139,13 +155,13 @@ export default function ProfilePageV3() {
                       setBio(profile.bio || '');
                     }}
                   >
-                    İptal
+                    {t('common.cancel')}
                   </Button>
                 </div>
               </div>
             ) : (
               <p className="text-sm text-gray-600 dark:text-gray-400 glass-strong p-3 rounded-lg">
-                {profile.bio || 'Henüz bir şey yazmışsın...'}
+                {profile.bio || t('profile.noBio')}
               </p>
             )}
           </div>
@@ -155,16 +171,16 @@ export default function ProfilePageV3() {
       {/* Stats Card */}
       <Card className="glass border-none shadow-lg">
         <CardContent className="p-4">
-          <h3 className="font-semibold mb-3">Aktivite</h3>
+          <h3 className="font-semibold mb-3">{t('profile.activity')}</h3>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Üyelik:</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('profile.memberSince')}:</span>
               <span className="font-medium">
                 {new Date(profile.created_at).toLocaleDateString('tr-TR')}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600 dark:text-gray-400">Vibe Kimliği:</span>
+              <span className="text-gray-600 dark:text-gray-400">{t('profile.vibeIdentity')}:</span>
               <Badge variant="outline">{profile.vibe_identity}</Badge>
             </div>
           </div>
