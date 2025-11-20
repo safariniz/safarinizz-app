@@ -617,13 +617,16 @@ async def mood_timeline(current_user: dict = Depends(get_current_user), days: in
 
 # AI Coach Insights
 @api_router.get("/v3/ai-coach/insights")
-async def ai_coach_insights(current_user: dict = Depends(get_current_user)):
+async def ai_coach_insights(language: str = 'tr', current_user: dict = Depends(get_current_user)):
     """Get AI-generated insights from CSS history"""
     try:
         css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(30).to_list(30)
         
         if not css_list:
-            return {"insights": [], "message": "İçgörüler için daha fazla CSS oluştur"}
+            if language == 'en':
+                return {"insights": [], "message": "Create more CSS for insights"}
+            else:
+                return {"insights": [], "message": "İçgörüler için daha fazla CSS oluştur"}
         
         # Analyze patterns
         emotions = [c.get('emotion_label', '') for c in css_list]
@@ -635,7 +638,15 @@ async def ai_coach_insights(current_user: dict = Depends(get_current_user)):
         if not api_key:
             raise ValueError("API key not configured")
         
-        prompt = f"""Bu kullanıcının son duygusal örüntülerini analiz et ve 3-4 kısa, destekleyici içgörü sun. TÜRKÇE yaz.
+        if language == 'en':
+            prompt = f"""Analyze this user's recent emotional patterns and provide 3-4 short, supportive insights. Write in ENGLISH.
+
+Recent emotions: {', '.join(emotions[:15])}
+Average intensity: {avg_freq:.2f}
+
+Provide practical, empathetic observations about their emotional patterns. Be concise and actionable. Each insight should be 1-2 sentences."""
+        else:
+            prompt = f"""Bu kullanıcının son duygusal örüntülerini analiz et ve 3-4 kısa, destekleyici içgörü sun. TÜRKÇE yaz.
 
 Son duygular: {', '.join(emotions[:15])}
 Ortalama yoğunluk: {avg_freq:.2f}
