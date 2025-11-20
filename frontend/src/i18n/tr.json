@@ -61,12 +61,19 @@
   "feed": {
     "title": "Duygu Akışı",
     "global": "Genel Akış",
+    "following": "Takip Ettiklerim",
     "personal": "Takip Ettiklerim",
+    "followButton": "Takip Et",
     "follow": "Takip Et",
     "unfollow": "Takibi Bırak",
     "noItems": "Henüz paylaşım yok",
+    "noPostsGlobal": "Henüz paylaşım yok",
+    "noPostsFollowing": "Takip ettiğin kişilerden paylaşım yok",
     "noFollowing": "Takip ettiğin kişilerden paylaşım yok",
-    "loadError": "Akış yüklenemedi"
+    "loadError": "Akış yüklenemedi",
+    "followSuccess": "Takip edildi",
+    "followError": "Takip edilemedi",
+    "lightLevel": "Işık"
   },
   "coach": {
     "title": "Bilişsel Koç",
