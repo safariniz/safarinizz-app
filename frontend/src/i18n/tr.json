@@ -50,7 +50,13 @@
     "createButton": "CSS Oluştur",
     "creating": "CSS Oluşturuluyor...",
     "created": "CSS oluşturuldu",
-    "error": "CSS oluşturulamadı"
+    "error": "CSS oluşturulamadı",
+    "emptyError": "Lütfen ruh halinizi tanımlayın",
+    "quotaError": "⚠️ OpenAI kotası doldu. Lütfen biraz bekleyin.",
+    "apiError": "AI servisi geçici olarak erişilemiyor",
+    "emotionLabel": "Duygusal Etiket",
+    "description": "Açıklama",
+    "reactions": "Reaksiyonlar"
   },
   "feed": {
     "title": "Duygu Akışı",
