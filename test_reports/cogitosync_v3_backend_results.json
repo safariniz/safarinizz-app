@@ -1,14 +1,12 @@
 {
-  "timestamp": "2025-11-18T16:32:40.131297",
+  "timestamp": "2025-11-20T18:54:17.622300",
   "version": "3.0.0",
   "backend_url": "https://babel-cogito.preview.emergentagent.com/api",
-  "total_tests": 22,
-  "passed_tests": 21,
-  "failed_tests": 1,
-  "success_rate": 95.45454545454545,
-  "critical_failures": [
-    "V3 Profile Creation: Status 500: Internal Server Error"
-  ],
+  "total_tests": 29,
+  "passed_tests": 29,
+  "failed_tests": 0,
+  "success_rate": 100.0,
+  "critical_failures": [],
   "detailed_results": [
     {
       "test": "Root Endpoint",
@@ -27,8 +25,8 @@
     },
     {
       "test": "V3 Profile Creation",
-      "success": false,
-      "details": "Status 500: Internal Server Error"
+      "success": true,
+      "details": ""
     },
     {
       "test": "Get My Profile",
@@ -41,7 +39,12 @@
       "details": ""
     },
     {
-      "test": "CSS Creation with AI",
+      "test": "CSS Creation with AI (Turkish)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "CSS Creation with AI (English)",
       "success": true,
       "details": ""
     },
@@ -76,12 +79,42 @@
       "details": ""
     },
     {
-      "test": "Coach Message",
+      "test": "Coach Message (Turkish)",
       "success": true,
       "details": ""
     },
     {
-      "test": "List Community Rooms",
+      "test": "Coach Message (English)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "AI Coach Insights (Turkish)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "AI Coach Insights (English)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Mood Forecast (Turkish)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "Mood Forecast (English)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Community Rooms (Turkish)",
+      "success": true,
+      "details": ""
+    },
+    {
+      "test": "List Community Rooms (English)",
       "success": true,
       "details": ""
     },
