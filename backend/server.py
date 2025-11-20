@@ -690,13 +690,16 @@ Duygusal örüntüleri hakkında pratik, empatik gözlemler sun. Kısa ve uygula
 
 # AI Mood Forecast
 @api_router.get("/v3/ai-forecast/predict")
-async def mood_forecast(current_user: dict = Depends(get_current_user)):
+async def mood_forecast(language: str = 'tr', current_user: dict = Depends(get_current_user)):
     """Predict mood trends for next 24 hours"""
     try:
         css_list = await db.css_snapshots.find({"user_id": current_user['id']}, {"_id": 0}).sort("timestamp", -1).limit(20).to_list(20)
         
         if len(css_list) < 5:
-            return {"forecast": "Tahmin için en az 5 CSS kaydı gerekli", "confidence": "düşük"}
+            if language == 'en':
+                return {"forecast": "At least 5 CSS records needed for prediction", "confidence": "low"}
+            else:
+                return {"forecast": "Tahmin için en az 5 CSS kaydı gerekli", "confidence": "düşük"}
         
         # Analyze recent trends
         recent_emotions = [c.get('emotion_label', '') for c in css_list[:10]]
