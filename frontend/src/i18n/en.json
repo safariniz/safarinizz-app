@@ -150,6 +150,23 @@
     "similarity": "match",
     "refreshRadar": "Refresh Radar"
   },
+  "live": {
+    "title": "Live CSS Stream",
+    "connected": "LIVE",
+    "connecting": "CONNECTING",
+    "waiting": "Live CSS will appear here...",
+    "streamActive": "Real-time stream active"
+  },
+  "history": {
+    "title": "My CSS History",
+    "loadError": "Could not load history",
+    "empty": "No CSS created yet.",
+    "createFirst": "Create Your First CSS",
+    "color": "Color",
+    "frequency": "Frequency",
+    "texture": "Texture",
+    "date": "Date"
+  },
   "menu": {
     "settings": "Settings",
     "premium": "Premium",
