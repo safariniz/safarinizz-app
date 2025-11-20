@@ -61,12 +61,19 @@
   "feed": {
     "title": "Emotion Feed",
     "global": "Global Feed",
+    "following": "Following",
     "personal": "Following",
+    "followButton": "Follow",
     "follow": "Follow",
     "unfollow": "Unfollow",
     "noItems": "No posts yet",
+    "noPostsGlobal": "No posts yet",
+    "noPostsFollowing": "No posts from people you follow",
     "noFollowing": "No posts from people you follow",
-    "loadError": "Could not load feed"
+    "loadError": "Could not load feed",
+    "followSuccess": "Followed",
+    "followError": "Could not follow",
+    "lightLevel": "Light"
   },
   "coach": {
     "title": "Cognitive Coach",
