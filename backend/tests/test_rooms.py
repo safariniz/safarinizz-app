@@ -2,7 +2,7 @@ import pytest
 import requests
 from datetime import datetime
 
-BASE_URL = "https://vibemind-1.preview.emergentagent.com/api"
+BASE_URL = "https://babel-cogito.preview.emergentagent.com/api"
 
 class TestRooms:
     """Test V3 community rooms endpoints"""

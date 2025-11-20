@@ -74,7 +74,7 @@ Response: 6 rooms with categories (Focus, Chill, Overthinking, etc.)
 **Date:** 2025-11-18 16:32  
 **Testing Agent:** Backend Testing Agent  
 **Test Suite:** CogitoSync V3.0 Comprehensive API Tests  
-**Backend URL:** https://vibemind-1.preview.emergentagent.com/api
+**Backend URL:** https://babel-cogito.preview.emergentagent.com/api
 
 ### Test Summary
 - **Total Tests:** 22
@@ -161,7 +161,7 @@ Response: 6 rooms with categories (Focus, Chill, Overthinking, etc.)
 **Date:** 2025-11-18 16:50  
 **Testing Agent:** Frontend Testing Agent  
 **Test Suite:** CogitoSync V3.0 Comprehensive Frontend Tests  
-**Frontend URL:** https://vibemind-1.preview.emergentagent.com
+**Frontend URL:** https://babel-cogito.preview.emergentagent.com
 
 ### Test Summary
 - **Total Critical Flows:** 10

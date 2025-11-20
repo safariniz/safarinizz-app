@@ -5,7 +5,7 @@
 **Date**: November 19, 2025  
 **Version**: 3.0.0  
 **Status**: 🟢 **PRODUCTION READY**  
-**Production URL**: **https://vibemind-1.preview.emergentagent.com**
+**Production URL**: **https://babel-cogito.preview.emergentagent.com**
 
 ---
 
@@ -175,7 +175,7 @@ Colors: #6366F1 (Indigo) → #A855F7 (Purple) → #22C6A8 (Teal)
 
 ### Base URL
 ```
-https://vibemind-1.preview.emergentagent.com/api
+https://babel-cogito.preview.emergentagent.com/api
 ```
 
 ### Key Endpoints (30 total)
@@ -275,14 +275,14 @@ https://vibemind-1.preview.emergentagent.com/api
 ## 📱 PWA Installation Guide
 
 ### iOS (Safari)
-1. Visit https://vibemind-1.preview.emergentagent.com
+1. Visit https://babel-cogito.preview.emergentagent.com
 2. Tap Share button (bottom middle)
 3. Scroll and tap "Add to Home Screen"
 4. Name it "CogitoSync" and tap Add
 5. Open from home screen for full-screen experience
 
 ### Android (Chrome)
-1. Visit https://vibemind-1.preview.emergentagent.com
+1. Visit https://babel-cogito.preview.emergentagent.com
 2. Tap menu (⋮) in top-right
 3. Tap "Install app" or "Add to Home Screen"
 4. Confirm installation
@@ -357,10 +357,10 @@ tail -f /var/log/supervisor/frontend.out.log
 ### Health Checks
 ```bash
 # API health
-curl https://vibemind-1.preview.emergentagent.com/api/
+curl https://babel-cogito.preview.emergentagent.com/api/
 
 # Frontend check
-curl -I https://vibemind-1.preview.emergentagent.com/
+curl -I https://babel-cogito.preview.emergentagent.com/
 
 # Database check
 mongo --eval "db.adminCommand('ping')"
@@ -460,7 +460,7 @@ mongo --eval "db.adminCommand('ping')"
 3. **WebSocket**: No automatic reconnection on mobile sleep (enhanced in v3.0)
 
 ### For Support
-- **Production URL**: https://vibemind-1.preview.emergentagent.com
+- **Production URL**: https://babel-cogito.preview.emergentagent.com
 - **Documentation**: `/app/DEV_NOTES.md`
 - **Logs**: `/var/log/supervisor/`
 - **Issue**: Check supervisor logs first
@@ -503,7 +503,7 @@ mongo --eval "db.adminCommand('ping')"
 **Status**: 🟢 **LIVE IN PRODUCTION**  
 **Version**: **3.0.0**  
 **Deployed**: **November 19, 2025**  
-**URL**: **https://vibemind-1.preview.emergentagent.com**
+**URL**: **https://babel-cogito.preview.emergentagent.com**
 
 **Let's sync minds, anonymously.** 🧠✨
 

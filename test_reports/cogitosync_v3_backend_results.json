@@ -1,7 +1,7 @@
 {
   "timestamp": "2025-11-18T16:32:40.131297",
   "version": "3.0.0",
-  "backend_url": "https://vibemind-1.preview.emergentagent.com/api",
+  "backend_url": "https://babel-cogito.preview.emergentagent.com/api",
   "total_tests": 22,
   "passed_tests": 21,
   "failed_tests": 1,

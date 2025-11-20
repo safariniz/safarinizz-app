@@ -198,7 +198,7 @@
 
 ## 🌐 Production URL
 
-**Live Application**: https://vibemind-1.preview.emergentagent.com
+**Live Application**: https://babel-cogito.preview.emergentagent.com
 
 ### Quick Test Flow
 1. Visit URL on mobile or desktop
@@ -229,7 +229,7 @@ CORS_ORIGINS="*"
 
 #### Frontend (`.env`)
 ```bash
-REACT_APP_BACKEND_URL=https://vibemind-1.preview.emergentagent.com
+REACT_APP_BACKEND_URL=https://babel-cogito.preview.emergentagent.com
 WDS_SOCKET_PORT=443
 REACT_APP_ENABLE_VISUAL_EDITS=false
 ```

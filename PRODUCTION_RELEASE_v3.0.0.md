@@ -12,7 +12,7 @@
 
 ## 🌐 Production URL
 
-**https://vibemind-1.preview.emergentagent.com**
+**https://babel-cogito.preview.emergentagent.com**
 
 ---
 
@@ -344,7 +344,7 @@ HTTPS:          Enabled
 
 ### Health Check
 ```bash
-curl https://vibemind-1.preview.emergentagent.com/api/
+curl https://babel-cogito.preview.emergentagent.com/api/
 ```
 
 ### Service Management
@@ -388,7 +388,7 @@ Features:       12/12 Active
 Tests:          11/12 Passed (91%)
 Services:       All Running
 Status:         ✅ PRODUCTION READY
-URL:            https://vibemind-1.preview.emergentagent.com
+URL:            https://babel-cogito.preview.emergentagent.com
 ```
 
 ### Key Achievements

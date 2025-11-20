@@ -221,7 +221,7 @@ CogitoSync v3.0 is the world's first cognitive-state social network where users 
 
 ### iOS
 1. Open Safari
-2. Visit: `https://vibemind-1.preview.emergentagent.com`
+2. Visit: `https://babel-cogito.preview.emergentagent.com`
 3. Tap Share → "Add to Home Screen"
 4. Open from home screen (fullscreen app)
 

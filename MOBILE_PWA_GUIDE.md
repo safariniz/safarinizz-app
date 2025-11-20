@@ -50,7 +50,7 @@
 
 ### iOS (Safari)
 1. Open Safari on iPhone
-2. Navigate to: `https://vibemind-1.preview.emergentagent.com`
+2. Navigate to: `https://babel-cogito.preview.emergentagent.com`
 3. Tap the Share button (square with arrow)
 4. Scroll down and tap "Add to Home Screen"
 5. Tap "Add" in the top right
@@ -68,7 +68,7 @@
 
 ### Android (Chrome)
 1. Open Chrome on Android phone
-2. Navigate to: `https://vibemind-1.preview.emergentagent.com`
+2. Navigate to: `https://babel-cogito.preview.emergentagent.com`
 3. Tap the three-dot menu (top right)
 4. Select "Add to Home screen" or "Install app"
 5. Tap "Add" or "Install"

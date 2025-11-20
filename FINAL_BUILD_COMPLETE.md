@@ -1,7 +1,7 @@
 # 🎉 CogitoSync v3.0 FINAL BUILD COMPLETED
 
 ## 🌐 Production URL
-**https://vibemind-1.preview.emergentagent.com**
+**https://babel-cogito.preview.emergentagent.com**
 
 ---
 
@@ -245,7 +245,7 @@ Handles:         Monospace
 **Build**: FINAL  
 **Status**: 🟢 PRODUCTION LIVE  
 
-**URL**: https://vibemind-1.preview.emergentagent.com
+**URL**: https://babel-cogito.preview.emergentagent.com
 
 **Verified**:
 - ✅ All services running

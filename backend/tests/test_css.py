@@ -3,7 +3,7 @@ import requests
 from datetime import datetime
 import json
 
-BASE_URL = "https://vibemind-1.preview.emergentagent.com/api"
+BASE_URL = "https://babel-cogito.preview.emergentagent.com/api"
 
 class TestCSS:
     """Test CSS creation and AI integration endpoints"""
