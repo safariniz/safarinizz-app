@@ -73,8 +73,13 @@
   },
   "scripts": {
     "start": "craco start",
-    "build": "craco build",
-    "test": "craco test"
+    "build": "craco build && npx cap sync",
+    "build:web": "craco build",
+    "build:mobile": "craco build && npx cap sync",
+    "test": "craco test",
+    "cap:sync": "npx cap sync",
+    "cap:android": "npx cap open android",
+    "cap:ios": "npx cap open ios"
   },
   "browserslist": {
     "production": [
