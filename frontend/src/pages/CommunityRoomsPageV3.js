@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,6 +14,7 @@ const getAuthHeader = () => ({
 });
 
 export default function CommunityRoomsPageV3() {
+  const { t, i18n } = useTranslation();
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [joinedRooms, setJoinedRooms] = useState(new Set());
@@ -24,11 +26,11 @@ export default function CommunityRoomsPageV3() {
   const loadRooms = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API}/v3/rooms/list`, getAuthHeader());
+      const response = await axios.get(`${API}/v3/rooms/list?language=${i18n.language}`, getAuthHeader());
       setRooms(response.data.rooms || []);
     } catch (error) {
       console.error('Odalar yüklenemedi:', error);
-      toast.error('Odalar yüklenemedi');
+      toast.error(t('rooms.loadError'));
     } finally {
       setLoading(false);
     }
@@ -38,10 +40,10 @@ export default function CommunityRoomsPageV3() {
     try {
       await axios.post(`${API}/v3/rooms/${roomId}/join`, {}, getAuthHeader());
       setJoinedRooms(prev => new Set(prev).add(roomId));
-      toast.success('Odaya katıldın');
+      toast.success(t('rooms.joined'));
       loadRooms();
     } catch (error) {
-      toast.error('Odaya katılamadın');
+      toast.error(t('rooms.joinError'));
     }
   };
 
@@ -53,23 +55,23 @@ export default function CommunityRoomsPageV3() {
         newSet.delete(roomId);
         return newSet;
       });
-      toast.success('Odadan çıktın');
+      toast.success(t('rooms.left'));
       loadRooms();
     } catch (error) {
-      toast.error('Odadan çıkılamadı');
+      toast.error(t('rooms.leaveError'));
     }
   };
 
   return (
     <div className="px-4 py-4 space-y-4">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-bold gradient-text">Topluluk Odaları</h1>
+        <h1 className="text-2xl font-bold gradient-text">{t('rooms.title')}</h1>
         <Users className="w-6 h-6 text-purple-600" />
       </div>
 
       {loading ? (
         <div className="text-center py-8">
-          <p className="text-gray-500">Yükleniyor...</p>
+          <p className="text-gray-500">{t('common.loading')}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -83,7 +85,7 @@ export default function CommunityRoomsPageV3() {
                       {room.is_trending && (
                         <Badge variant="default" className="bg-gradient-to-r from-orange-500 to-pink-500">
                           <TrendingUp className="w-3 h-3 mr-1" />
-                          Popüler
+                          {t('rooms.trending')}
                         </Badge>
                       )}
                     </div>
@@ -96,7 +98,7 @@ export default function CommunityRoomsPageV3() {
                   <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      {room.member_count} üye
+                      {room.member_count} {t('rooms.members')}
                     </span>
                     <Badge variant="outline">{room.category}</Badge>
                   </div>
@@ -108,7 +110,7 @@ export default function CommunityRoomsPageV3() {
                       onClick={() => handleLeave(room.id)}
                     >
                       <LogOut className="w-4 h-4 mr-1" />
-                      Çık
+                      {t('rooms.leave')}
                     </Button>
                   ) : (
                     <Button
@@ -117,7 +119,7 @@ export default function CommunityRoomsPageV3() {
                       onClick={() => handleJoin(room.id)}
                     >
                       <LogIn className="w-4 h-4 mr-1" />
-                      Katıl
+                      {t('rooms.join')}
                     </Button>
                   )}
                 </div>

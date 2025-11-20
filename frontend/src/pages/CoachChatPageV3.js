@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ const getAuthHeader = () => ({
 });
 
 export default function CoachChatPageV3() {
+  const { t, i18n } = useTranslation();
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -24,14 +26,14 @@ export default function CoachChatPageV3() {
 
   const startSession = async () => {
     try {
-      const response = await axios.post(`${API}/v3/coach/start-session`, {}, getAuthHeader());
+      const response = await axios.post(`${API}/v3/coach/start-session`, { language: i18n.language }, getAuthHeader());
       setSessionId(response.data.session_id);
       setMessages([{
         role: 'assistant',
-        content: 'Merhaba, ben senin bilişsel koçunum. Bugün sana nasıl destek olabilirim?'
+        content: t('coach.greeting')
       }]);
     } catch (error) {
-      toast.error('Koç oturumu başlatılamadı');
+      toast.error(t('coach.sessionError'));
     }
   };
 
@@ -46,7 +48,7 @@ export default function CoachChatPageV3() {
     try {
       const response = await axios.post(
         `${API}/v3/coach/message`,
-        { session_id: sessionId, message: input },
+        { session_id: sessionId, message: input, language: i18n.language },
         getAuthHeader()
       );
       
@@ -55,7 +57,7 @@ export default function CoachChatPageV3() {
         content: response.data.reply
       }]);
     } catch (error) {
-      toast.error('Mesaj gönderilemedi');
+      toast.error(t('coach.sendError'));
     } finally {
       setLoading(false);
     }
@@ -65,7 +67,7 @@ export default function CoachChatPageV3() {
     <div className="flex flex-col h-[calc(100vh-128px)] px-4 py-4">
       <div className="flex items-center gap-2 mb-4">
         <MessageCircle className="w-6 h-6 text-purple-600" />
-        <h1 className="text-2xl font-bold gradient-text">Bilişsel Koç</h1>
+        <h1 className="text-2xl font-bold gradient-text">{t('coach.title')}</h1>
       </div>
 
       <Card className="flex-1 glass border-none shadow-lg mb-4 overflow-hidden">
@@ -105,7 +107,7 @@ export default function CoachChatPageV3() {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-          placeholder="Mesajını yaz..."
+          placeholder={t('coach.placeholder')}
           className="glass-strong"
           disabled={loading}
         />
