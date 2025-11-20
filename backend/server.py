@@ -669,14 +669,24 @@ Duygusal örüntüleri hakkında pratik, empatik gözlemler sun. Kısa ve uygula
         
     except Exception as e:
         logging.error(f"AI insights error: {e}")
-        return {
-            "insights": [
-                "Duygusal örüntülerin hakkında farkındalık geliştiriyorsun.",
-                "Düzenli kontroller kendini daha iyi anlamana yardımcı oluyor.",
-                "Hangi durumların seni olumlu hissettirdiğini gözlemle."
-            ],
-            "fallback": True
-        }
+        if language == 'en':
+            return {
+                "insights": [
+                    "You're developing awareness about your emotional patterns.",
+                    "Regular check-ins help you understand yourself better.",
+                    "Observe which situations make you feel positive."
+                ],
+                "fallback": True
+            }
+        else:
+            return {
+                "insights": [
+                    "Duygusal örüntülerin hakkında farkındalık geliştiriyorsun.",
+                    "Düzenli kontroller kendini daha iyi anlamana yardımcı oluyor.",
+                    "Hangi durumların seni olumlu hissettirdiğini gözlemle."
+                ],
+                "fallback": True
+            }
 
 # AI Mood Forecast
 @api_router.get("/v3/ai-forecast/predict")
