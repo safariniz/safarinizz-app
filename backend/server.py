@@ -736,11 +736,18 @@ Olası duygusal eğilimler hakkında kısa, destekleyici bir tahmin (2-3 cümle)
         
     except Exception as e:
         logging.error(f"Forecast error: {e}")
-        return {
-            "forecast": "Bilinçli farkındalığına devam et. Küçük olumlu adımlar zamanla büyük etkiler yaratır.",
-            "confidence": "düşük",
-            "fallback": True
-        }
+        if language == 'en':
+            return {
+                "forecast": "Continue with conscious awareness. Small positive steps create big impacts over time.",
+                "confidence": "low",
+                "fallback": True
+            }
+        else:
+            return {
+                "forecast": "Bilinçli farkındalığına devam et. Küçük olumlu adımlar zamanla büyük etkiler yaratır.",
+                "confidence": "düşük",
+                "fallback": True
+            }
 
 # Room Dynamics
 @api_router.get("/v3/room/{room_id}/dynamics")
