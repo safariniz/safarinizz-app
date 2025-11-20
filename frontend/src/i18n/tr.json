@@ -1,0 +1,144 @@
+{
+  "common": {
+    "appName": "CogitoSync",
+    "loading": "Yükleniyor...",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "edit": "Düzenle",
+    "delete": "Sil",
+    "close": "Kapat",
+    "back": "Geri",
+    "next": "İleri",
+    "submit": "Gönder",
+    "confirm": "Onayla",
+    "error": "Hata",
+    "success": "Başarılı"
+  },
+  "nav": {
+    "create": "Oluştur",
+    "live": "Canlı",
+    "feed": "Akış",
+    "insights": "İçgörüler",
+    "radar": "Radar",
+    "profile": "Profil"
+  },
+  "auth": {
+    "title": "CogitoSync",
+    "subtitle": "Anonim Bilişsel Sosyal Platformun",
+    "login": "Giriş",
+    "register": "Kayıt",
+    "email": "E-posta",
+    "password": "Şifre",
+    "loginButton": "Giriş Yap",
+    "registerButton": "Kayıt Ol",
+    "loginSuccess": "Giriş başarılı",
+    "registerSuccess": "Kayıt başarılı",
+    "loginError": "Giriş başarısız",
+    "registerError": "Kayıt başarısız",
+    "languageLabel": "Dil Seçimi"
+  },
+  "create": {
+    "title": "Ruh Halini Paylaş",
+    "placeholder": "Şu an nasıl hissediyorsun? Dürüst ol, soyut ol... 'İçimde sessiz bir fırtına büyüyor...'",
+    "createButton": "CSS Oluştur",
+    "creating": "CSS Oluşturuluyor...",
+    "created": "CSS oluşturuldu",
+    "error": "CSS oluşturulamadı"
+  },
+  "feed": {
+    "title": "Duygu Akışı",
+    "global": "Genel Akış",
+    "personal": "Takip Ettiklerim",
+    "follow": "Takip Et",
+    "unfollow": "Takibi Bırak",
+    "noItems": "Henüz paylaşım yok",
+    "noFollowing": "Takip ettiğin kişilerden paylaşım yok",
+    "loadError": "Akış yüklenemedi"
+  },
+  "coach": {
+    "title": "Bilişsel Koç",
+    "greeting": "Merhaba, ben senin bilişsel koçunum. Bugün sana nasıl destek olabilirim?",
+    "placeholder": "Mesajını yaz...",
+    "send": "Gönder",
+    "sessionError": "Koç oturumu başlatılamadı",
+    "sendError": "Mesaj gönderilemedi"
+  },
+  "rooms": {
+    "title": "Topluluk Odaları",
+    "join": "Katıl",
+    "leave": "Çık",
+    "members": "üye",
+    "trending": "Popüler",
+    "joined": "Odaya katıldın",
+    "left": "Odadan çıktın",
+    "joinError": "Odaya katılamadın",
+    "leaveError": "Odadan çıkılamadı",
+    "loadError": "Odalar yüklenemedi",
+    "names": {
+      "deepFocus": "Derin Fokus Alanı",
+      "chillLounge": "Rahatlama Odası",
+      "overthinking": "Düşünce Durağı",
+      "studyGrind": "Çalışma Modu",
+      "nightOwls": "Gece Kuşları",
+      "creatorsCorner": "Yaratıcı Akış"
+    },
+    "descriptions": {
+      "deepFocus": "Akış halindeki zihinler için",
+      "chillLounge": "Gevşe ve rahatla",
+      "overthinking": "Hiç durmayan zihinler için",
+      "studyGrind": "Sadece öğrenci enerjisi",
+      "nightOwls": "Sabahın 3'ü ekibi",
+      "creatorsCorner": "Sanatçılar, yazarlar, üretenler için"
+    }
+  },
+  "profile": {
+    "title": "Profilim",
+    "about": "Hakkımda",
+    "bio": "Kendini kısaca anlat...",
+    "noBio": "Henüz bir şey yazmamışsın...",
+    "followers": "Takipçi",
+    "following": "Takip",
+    "activity": "Aktivite",
+    "memberSince": "Üyelik:",
+    "vibeIdentity": "Vibe Kimliği:",
+    "updated": "Profil güncellendi",
+    "updateError": "Profil güncellenemedi",
+    "loadError": "Profil yüklenemedi",
+    "settings": "Ayarlar",
+    "language": "Dil"
+  },
+  "insights": {
+    "title": "İçgörüler",
+    "timeline": "Ruh Hali Çizelgesi",
+    "forecast": "24 Saat Tahmini",
+    "coach": "AI Koç İçgörüleri",
+    "getInsights": "AI İçgörüleri Al",
+    "loadingInsights": "Analiz ediliyor...",
+    "basedOn": "Son duygusal örüntülere dayanarak",
+    "refresh": "Yenile"
+  },
+  "radar": {
+    "title": "Yakındaki Ruh Hali Dalgaları",
+    "scan": "Tara",
+    "scanning": "Taranıyor...",
+    "noMatches": "Henüz eşleşme yok",
+    "createMore": "Daha fazla CSS oluştur ve eşleşmeleri bul!",
+    "similarity": "uyum",
+    "refreshRadar": "Radarı Yenile"
+  },
+  "menu": {
+    "settings": "Ayarlar",
+    "premium": "Premium",
+    "logout": "Çıkış Yap"
+  },
+  "messages": {
+    "cssCreated": "CSS başarıyla oluşturuldu",
+    "profileCreated": "Profil oluşturuldu",
+    "followed": "Takip edildi",
+    "unfollowed": "Takip bırakıldı",
+    "roomJoined": "Odaya katıldın",
+    "roomLeft": "Odadan çıktın",
+    "messageSent": "Mesaj gönderildi",
+    "saved": "Kaydedildi"
+  }
+}

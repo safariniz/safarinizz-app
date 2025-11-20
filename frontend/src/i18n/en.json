@@ -1,0 +1,144 @@
+{
+  "common": {
+    "appName": "CogitoSync",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "confirm": "Confirm",
+    "error": "Error",
+    "success": "Success"
+  },
+  "nav": {
+    "create": "Create",
+    "live": "Live",
+    "feed": "Feed",
+    "insights": "Insights",
+    "radar": "Radar",
+    "profile": "Profile"
+  },
+  "auth": {
+    "title": "CogitoSync",
+    "subtitle": "Your Anonymous Cognitive Social Platform",
+    "login": "Login",
+    "register": "Register",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Sign In",
+    "registerButton": "Sign Up",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "loginError": "Login failed",
+    "registerError": "Registration failed",
+    "languageLabel": "Language"
+  },
+  "create": {
+    "title": "Share Your Vibe",
+    "placeholder": "How are you feeling right now? Be honest, be abstract... 'A quiet storm brewing inside...'",
+    "createButton": "Create CSS",
+    "creating": "Creating CSS...",
+    "created": "CSS created",
+    "error": "Could not create CSS"
+  },
+  "feed": {
+    "title": "Emotion Feed",
+    "global": "Global Feed",
+    "personal": "Following",
+    "follow": "Follow",
+    "unfollow": "Unfollow",
+    "noItems": "No posts yet",
+    "noFollowing": "No posts from people you follow",
+    "loadError": "Could not load feed"
+  },
+  "coach": {
+    "title": "Cognitive Coach",
+    "greeting": "Hello, I'm your cognitive coach. How can I support you today?",
+    "placeholder": "Type your message...",
+    "send": "Send",
+    "sessionError": "Could not start coach session",
+    "sendError": "Could not send message"
+  },
+  "rooms": {
+    "title": "Community Rooms",
+    "join": "Join",
+    "leave": "Leave",
+    "members": "members",
+    "trending": "Trending",
+    "joined": "Joined room",
+    "left": "Left room",
+    "joinError": "Could not join room",
+    "leaveError": "Could not leave room",
+    "loadError": "Could not load rooms",
+    "names": {
+      "deepFocus": "Deep Focus Zone",
+      "chillLounge": "Chill Lounge",
+      "overthinking": "Overthinking Anonymous",
+      "studyGrind": "Study Grind",
+      "nightOwls": "Night Owls",
+      "creatorsCorner": "Creator's Corner"
+    },
+    "descriptions": {
+      "deepFocus": "For minds in flow state",
+      "chillLounge": "Relax and unwind",
+      "overthinking": "For minds that never stop",
+      "studyGrind": "Student vibes only",
+      "nightOwls": "3AM crew",
+      "creatorsCorner": "For artists, writers, builders"
+    }
+  },
+  "profile": {
+    "title": "My Profile",
+    "about": "About",
+    "bio": "Tell us about yourself...",
+    "noBio": "You haven't written anything yet...",
+    "followers": "Followers",
+    "following": "Following",
+    "activity": "Activity",
+    "memberSince": "Member since:",
+    "vibeIdentity": "Vibe Identity:",
+    "updated": "Profile updated",
+    "updateError": "Could not update profile",
+    "loadError": "Could not load profile",
+    "settings": "Settings",
+    "language": "Language"
+  },
+  "insights": {
+    "title": "Insights",
+    "timeline": "Mood Timeline",
+    "forecast": "24h Forecast",
+    "coach": "AI Coach Insights",
+    "getInsights": "Get AI Insights",
+    "loadingInsights": "Analyzing...",
+    "basedOn": "Based on your recent emotional patterns",
+    "refresh": "Refresh"
+  },
+  "radar": {
+    "title": "Nearby Mood Waves",
+    "scan": "Scan",
+    "scanning": "Scanning...",
+    "noMatches": "No matches yet",
+    "createMore": "Create more CSS to find resonance!",
+    "similarity": "match",
+    "refreshRadar": "Refresh Radar"
+  },
+  "menu": {
+    "settings": "Settings",
+    "premium": "Premium",
+    "logout": "Logout"
+  },
+  "messages": {
+    "cssCreated": "CSS created successfully",
+    "profileCreated": "Profile created",
+    "followed": "Followed",
+    "unfollowed": "Unfollowed",
+    "roomJoined": "Joined room",
+    "roomLeft": "Left room",
+    "messageSent": "Message sent",
+    "saved": "Saved"
+  }
+}
