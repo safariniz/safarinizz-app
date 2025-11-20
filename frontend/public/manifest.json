@@ -1,7 +1,7 @@
 {
-  "name": "CogitoSync v3.0",
+  "name": "CogitoSync v3.1 - VibeMind",
   "short_name": "CogitoSync",
-  "description": "Anonymous Cognitive Social Platform - Track and share your emotional state",
+  "description": "Anonymous Cognitive Social Platform - Track and share your emotional state in Turkish and English",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0F0B25",
@@ -26,6 +26,23 @@
   "screenshots": [],
   "related_applications": [],
   "prefer_related_applications": false,
-  "lang": "en-US",
-  "dir": "ltr"
+  "lang": "tr-TR",
+  "dir": "ltr",
+  "iarc_rating_id": "",
+  "shortcuts": [
+    {
+      "name": "Create CSS",
+      "short_name": "Create",
+      "description": "Create a new emotional CSS snapshot",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Feed",
+      "short_name": "Feed",
+      "description": "View emotion feed",
+      "url": "/feed",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 }
