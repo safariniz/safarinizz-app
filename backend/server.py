@@ -424,9 +424,15 @@ async def coach_message(msg: CoachMessage, current_user: dict = Depends(get_curr
 
 # Community Rooms
 @api_router.get("/v3/rooms/list")
-async def list_rooms(category: Optional[str] = None):
+async def list_rooms(category: Optional[str] = None, language: str = 'tr'):
     query = {"category": category} if category else {}
     rooms = await db.community_rooms.find(query, {"_id": 0}).to_list(100)
+    # Return rooms with localized names and descriptions based on language
+    for room in rooms:
+        if language == 'en' and 'name_en' in room:
+            room['name'] = room['name_en']
+        if language == 'en' and 'description_en' in room:
+            room['description'] = room['description_en']
     return {"rooms": rooms}
 
 @api_router.get("/v3/rooms/trending")
