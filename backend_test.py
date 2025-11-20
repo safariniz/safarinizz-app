@@ -431,23 +431,184 @@ class CogitoSyncV3APITester:
             return True
         return False
 
+    # ========== AI INSIGHTS AND FORECAST TESTS (P0) ==========
+    
+    def test_ai_coach_insights_turkish(self):
+        """Test AI coach insights in Turkish"""
+        success, response = self.run_test(
+            "AI Coach Insights (Turkish)",
+            "GET",
+            "v3/ai-coach/insights?language=tr",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'insights' in response:
+            insights = response['insights']
+            print(f"   ✅ Retrieved {len(insights)} insights in Turkish")
+            
+            if insights:
+                # Check if insights contain Turkish characters
+                insight_text = ' '.join(insights)
+                turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+                has_turkish = any(char in insight_text for char in turkish_indicators)
+                
+                if has_turkish:
+                    print("   ✅ Insights are in Turkish")
+                else:
+                    print("   ⚠️  WARNING: Insights may not be in Turkish")
+                
+                print(f"   ✅ Sample insight: {insights[0][:80]}...")
+            
+            return True
+        return False
+
+    def test_ai_coach_insights_english(self):
+        """Test AI coach insights in English"""
+        success, response = self.run_test(
+            "AI Coach Insights (English)",
+            "GET",
+            "v3/ai-coach/insights?language=en",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'insights' in response:
+            insights = response['insights']
+            print(f"   ✅ Retrieved {len(insights)} insights in English")
+            
+            if insights:
+                # Check if insights are in English (no Turkish characters)
+                insight_text = ' '.join(insights)
+                turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+                has_turkish = any(char in insight_text for char in turkish_indicators)
+                
+                if not has_turkish:
+                    print("   ✅ Insights are in English")
+                else:
+                    print("   ⚠️  WARNING: Insights may contain Turkish content")
+                
+                print(f"   ✅ Sample insight: {insights[0][:80]}...")
+            
+            return True
+        return False
+
+    def test_mood_forecast_turkish(self):
+        """Test mood forecast in Turkish"""
+        success, response = self.run_test(
+            "Mood Forecast (Turkish)",
+            "GET",
+            "v3/ai-forecast/predict?language=tr",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'forecast' in response:
+            forecast = response['forecast']
+            print(f"   ✅ Forecast received (TR): {forecast[:80]}...")
+            
+            # Check if forecast contains Turkish characters
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in forecast for char in turkish_indicators)
+            
+            if has_turkish:
+                print("   ✅ Forecast is in Turkish")
+            else:
+                print("   ⚠️  WARNING: Forecast may not be in Turkish")
+            
+            print(f"   ✅ Confidence: {response.get('confidence', 'unknown')}")
+            return True
+        return False
+
+    def test_mood_forecast_english(self):
+        """Test mood forecast in English"""
+        success, response = self.run_test(
+            "Mood Forecast (English)",
+            "GET",
+            "v3/ai-forecast/predict?language=en",
+            200,
+            priority="P0"
+        )
+        
+        if success and 'forecast' in response:
+            forecast = response['forecast']
+            print(f"   ✅ Forecast received (EN): {forecast[:80]}...")
+            
+            # Check if forecast is in English (no Turkish characters)
+            turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+            has_turkish = any(char in forecast for char in turkish_indicators)
+            
+            if not has_turkish:
+                print("   ✅ Forecast is in English")
+            else:
+                print("   ⚠️  WARNING: Forecast may contain Turkish content")
+            
+            print(f"   ✅ Confidence: {response.get('confidence', 'unknown')}")
+            return True
+        return False
+
     # ========== COMMUNITY ROOMS TESTS (P1) ==========
     
-    def test_list_rooms(self):
-        """Test listing community rooms"""
+    def test_list_rooms_turkish(self):
+        """Test listing community rooms in Turkish"""
         success, response = self.run_test(
-            "List Community Rooms",
+            "List Community Rooms (Turkish)",
             "GET",
-            "v3/rooms/list",
+            "v3/rooms/list?language=tr",
             200,
             priority="P1"
         )
         
         if success and 'rooms' in response:
-            print(f"   ✅ Retrieved {len(response['rooms'])} rooms")
-            if response['rooms']:
-                self.room_id = response['rooms'][0].get('id')
+            rooms = response['rooms']
+            print(f"   ✅ Retrieved {len(rooms)} rooms in Turkish")
+            
+            if rooms:
+                self.room_id = rooms[0].get('id')
                 print(f"   ✅ First room ID: {self.room_id}")
+                
+                # Check if room names contain Turkish characters
+                room_names = ' '.join([room.get('name', '') for room in rooms[:3]])
+                turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+                has_turkish = any(char in room_names for char in turkish_indicators)
+                
+                if has_turkish:
+                    print("   ✅ Room names are in Turkish")
+                else:
+                    print("   ⚠️  WARNING: Room names may not be in Turkish")
+                
+                print(f"   ✅ Sample room: {rooms[0].get('name', 'Unknown')}")
+            
+            return True
+        return False
+
+    def test_list_rooms_english(self):
+        """Test listing community rooms in English"""
+        success, response = self.run_test(
+            "List Community Rooms (English)",
+            "GET",
+            "v3/rooms/list?language=en",
+            200,
+            priority="P1"
+        )
+        
+        if success and 'rooms' in response:
+            rooms = response['rooms']
+            print(f"   ✅ Retrieved {len(rooms)} rooms in English")
+            
+            if rooms:
+                # Check if room names are in English (no Turkish characters)
+                room_names = ' '.join([room.get('name', '') for room in rooms[:3]])
+                turkish_indicators = ['ı', 'ğ', 'ü', 'ş', 'ö', 'ç', 'İ', 'Ğ', 'Ü', 'Ş', 'Ö', 'Ç']
+                has_turkish = any(char in room_names for char in turkish_indicators)
+                
+                if not has_turkish:
+                    print("   ✅ Room names are in English")
+                else:
+                    print("   ⚠️  WARNING: Room names may contain Turkish content")
+                
+                print(f"   ✅ Sample room: {rooms[0].get('name', 'Unknown')}")
+            
             return True
         return False
 
