@@ -261,7 +261,7 @@ async def login(user_data: UserLogin):
 # CSS
 @api_router.post("/css/create", response_model=CSS)
 async def create_css(css_input: CSSCreate, background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
-    css_data = await generate_css_with_ai(css_input.emotion_input)
+    css_data = await generate_css_with_ai(css_input.emotion_input, css_input.language or 'tr')
     location_hash = None
     if css_input.location:
         location_hash = hash_location(css_input.location['lat'], css_input.location['lon'])
