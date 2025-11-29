@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yakında Sizlerleyiz</title>
+<style>
+    body {
+        margin: 0;
+        padding: 0;
+        background: linear-gradient(120deg, #1a1a1a, #3f00ff);
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        color: white;
+        text-align: center;
+    }
+    h1 {
+        font-size: 48px;
+        margin-bottom: 10px;
+        color: #ffffff;
+    }
+    p {
+        font-size: 22px;
+        opacity: 0.8;
+    }
+    .loading {
+        margin-top: 25px;
+        width: 45px;
+        height: 45px;
+        border: 4px solid #ffffff50;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+</head>
+<body>
+    <h1>Yakında Sizlerleyiz</h1>
+    <p>Web sitemiz üzerinde çalışıyoruz. Çok yakında aktif olacak!</p>
+    <div class="loading"></div>
+</body>
+</html>
