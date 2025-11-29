@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CogitoSync – Yakında Sizlerleyiz</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #1a1a1a, #3f3f3f);
+            font-family: Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        p {
+            font-size: 20px;
+            max-width: 500px;
+        }
+        .loading {
+            margin-top: 30px;
+            width: 60px;
+            height: 60px;
+            border: 6px solid #ffffff50;
+            border-top-color: #00d4ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        footer {
+            position: absolute;
+            bottom: 20px;
+            font-size: 14px;
+            opacity: .5;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>CogitoSync</h1>
+    <p>Web sürümümüz hazırlanıyor. Çok yakında sizlerle!</p>
+
+    <div class="loading"></div>
+
+    <footer>© 2025 CogitoSync</footer>
+
+</body>
+</html>
