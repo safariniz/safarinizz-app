@@ -1,127 +1,58 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CogitoSync - Yakında Sizlerle</title>
 
     <style>
-        * {
+        body {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        body {
+            background: linear-gradient(135deg, #0a0a0f, #13131a, #1b1b25);
+            font-family: "Inter", sans-serif;
+            color: #ffffff;
             height: 100vh;
-            background: radial-gradient(circle at top, #151515, #000);
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            color: #fff;
-            overflow: hidden;
-        }
-
-        .glass {
-            padding: 40px 60px;
-            background: rgba(255,255,255,0.06);
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255,255,255,0.1);
+            justify-content: center;
             text-align: center;
-            animation: fadeIn 1.2s ease forwards;
         }
-
-        h1 {
-            font-size: 42px;
-            margin-bottom: 10px;
-            letter-spacing: 2px;
-        }
-
-        p {
-            font-size: 18px;
-            opacity: 0.8;
-        }
-
-        .loader {
-            margin: 30px auto;
-            border: 4px solid rgba(255,255,255,0.2);
-            border-top: 4px solid #4aa3ff;
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .social {
-            margin-top: 25px;
-        }
-
-        .social a {
-            margin: 0 10px;
-            font-size: 22px;
-            color: #4aa3ff;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        .social a:hover {
-            color: #fff;
-            text-shadow: 0 0 10px #4aa3ff;
-        }
-
-        footer {
-            position: absolute;
-            bottom: 20px;
-            font-size: 14px;
-            opacity: 0.6;
-        }
-
-        /* Floating lights animation */
-        .light {
-            position: absolute;
+        .logo {
             width: 140px;
-            height: 140px;
-            background: #4aa3ff33;
-            border-radius: 50%;
-            filter: blur(60px);
-            animation: float 10s infinite ease-in-out;
+            height: auto;
+            margin-bottom: 40px;
+            opacity: 0;
+            animation: fadeIn 1.6s ease forwards;
         }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-40px); }
-            100% { transform: translateY(0px); }
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeIn 1.8s ease forwards;
         }
-
-        .l1 { top: 10%; left: 15%; }
-        .l2 { bottom: 10%; right: 15%; animation-delay: 3s; }
+        p {
+            font-size: 1.15rem;
+            font-weight: 300;
+            opacity: 0;
+            animation: fadeIn 2.2s ease forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
+
 <body>
 
-    <div class="light l1"></div>
-    <div class="light l2"></div>
+    <!-- LOGO — BURAYA GERÇEK LOGO YOLUNU YAZACAKSIN -->
+    <img src="logo.png" alt="CogitoSync Logo" class="logo">
 
-    <div class="glass">
-        <h1>CogitoSync</h1>
-        <p>Yeni nesil yapay zeka destekli uygulamamız çok yakında sizlerle...</p>
-
-        <div class="loader"></div>
-
-        <div class="social">
-            <a href="#">Instagram</a>
-            <a href="#">Twitter</a>
-            <a href="#">YouTube</a>
-        </div>
-    </div>
-
-    <footer>© 2025 CogitoSync - Tüm hakları saklıdır.</footer>
+    <h1>CogitoSync</h1>
+    <p>Yeni nesil yapay zekâ deneyimi çok yakında sizlerle.</p>
 
 </body>
 </html>
