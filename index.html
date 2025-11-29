@@ -9,47 +9,52 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(135deg, #0a0a0f, #13131a, #1b1b25);
+            background: linear-gradient(135deg, #0d0d12, #161623, #1d1d2b);
             font-family: "Inter", sans-serif;
-            color: #ffffff;
+            color: #fff;
             height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
+            align-items: center;
             text-align: center;
         }
-        .logo {
-            width: 140px;
+
+        img.logo {
+            width: 120px;
             height: auto;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             opacity: 0;
-            animation: fadeIn 1.6s ease forwards;
+            animation: fadeIn 1.5s ease forwards;
         }
+
         h1 {
-            font-size: 2.2rem;
+            font-size: 2.4rem;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin: 0;
             opacity: 0;
             animation: fadeIn 1.8s ease forwards;
         }
+
         p {
-            font-size: 1.15rem;
-            font-weight: 300;
+            font-size: 1.2rem;
+            margin-top: 15px;
             opacity: 0;
+            font-weight: 300;
             animation: fadeIn 2.2s ease forwards;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(15px); }
-            to   { opacity: 1; transform: translateY(0); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- LOGO — BURAYA GERÇEK LOGO YOLUNU YAZACAKSIN -->
-    <img src="logo.png" alt="CogitoSync Logo" class="logo">
+    <!-- LOGO — Geçici olarak base64 embed edildi -->
+    <img class="logo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAYAAACN6Wc0AAAACXBIWXMAAAsTAAALEwEAmpwYAAAGH0lEQVR4nO3d0W7jOBSG4ROKqgG2gn2AvYDeQG7gPYAbuA/ADqYVhZ6PvxI6pZeRAioIJXzfOsGf4dkprdTWqpa6nGSCQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8C/wHIX66D+PfYZ7R6pujISiYDUFxIr05oig3NbS1Ry6j8TDIrS9KuX3sI5Gucs5cjox96D65gis6pZeRAioIJUKGwEuITdSb9VInA36TObgGJE0E7E5Wdl66i4kLlwM1S01qmPvvrLpzjAU6YewsGmmIOzBSSMSmc5QwDFi1Cdm42Hcps225y7sY9qsut0k12x1L6N53BJp3xNmPR9U1FVLtZL1NVr7Di5urN6byN1Nsx3Rp3XIan+FJxuxMxDPZWS9Vyuk3F7S3Uz7Dnk3a1WzN96T2mu+qs7qSdz+51H3VddOZXS6jttu99Hy9+K6TfGs3pbbf5vVsQt1zG72XdTXLr51Jt9zb7l9Pmg5XJq9z3nnua/d2nE9s51bb7NPp7apdtRi+57TqPdm7w/Hk7S3Uz7Dnk3a1WzN96T2mu+qs7qSd77r0z7Vdc6drXrP3AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADwvPsAzftNQNVuMcUAAAAASUVORK5CYII=">
 
     <h1>CogitoSync</h1>
     <p>Yeni nesil yapay zekâ deneyimi çok yakında sizlerle.</p>
